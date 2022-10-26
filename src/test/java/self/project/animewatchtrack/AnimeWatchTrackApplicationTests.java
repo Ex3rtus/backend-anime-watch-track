@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * @author Youssef Kaïdi.
- * @created 25 oct. 2022.
+ * created 25 oct. 2022.
  */
 @SpringBootTest
 class AnimeWatchTrackApplicationTests {
