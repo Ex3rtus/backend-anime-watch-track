@@ -12,7 +12,9 @@
 	<artifactId>back-end-anime-watch-track</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>back-end-anime-watch-track</name>
-	<description>Back-end project for local anime watch progress tracking and saving animes to watch later</description>
+	<description>
+		Back-end project for local anime watch progress tracking and saving anime titles for later viewership
+	</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
