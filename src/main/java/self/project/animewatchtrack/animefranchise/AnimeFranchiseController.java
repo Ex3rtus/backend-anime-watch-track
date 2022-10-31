@@ -5,7 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.util.List;
 
 import static self.project.animewatchtrack.constants.ResourcePaths.*;
 
@@ -22,6 +22,16 @@ import static self.project.animewatchtrack.constants.ResourcePaths.*;
 public class AnimeFranchiseController {
 
     private final AnimeFranchiseService animeFranchiseService;
+
+    @GetMapping
+    public List<AnimeFranchiseDTO> getAllFranchises() {
+        return animeFranchiseService.getAll();
+    }
+
+    @GetMapping(path = "/{franchiseId}")
+    public ResponseEntity<AnimeFranchiseDTO> getFranchiseById(@PathVariable("franchiseId") String franchiseId) {
+        return ResponseEntity.ok(animeFranchiseService.getById(franchiseId));
+    }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> addNewAnimeFranchise(@RequestBody AnimeFranchiseCommand animeFranchiseCommand) {

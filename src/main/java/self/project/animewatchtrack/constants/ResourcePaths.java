@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class ResourcePaths {
     public static final String V1 = "/v1";
     public static final String API = "/api";
-    public static final String ANIME_FRANCHISE = "/animefranchise";
+    public static final String ANIME_FRANCHISE = "/animefranchises";
 }

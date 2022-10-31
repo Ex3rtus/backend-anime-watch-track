@@ -1,6 +1,7 @@
 package self.project.animewatchtrack.animefranchise;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
  */
 
 @Builder
+@EqualsAndHashCode
 @Setter
 @Getter
 public class AnimeFranchiseDTO {

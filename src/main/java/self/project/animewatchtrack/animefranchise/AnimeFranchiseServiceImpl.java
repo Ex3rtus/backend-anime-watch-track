@@ -5,8 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author Youssef Kaïdi.
@@ -32,5 +33,20 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
 
         AnimeFranchise animeFranchise = AnimeFranchiseMapper.mapToEntity(animeFranchiseCommand);
         return franchiseRepository.save(animeFranchise);
+    }
+
+    @Override
+    public List<AnimeFranchiseDTO> getAll() {
+        return franchiseRepository.findAll()
+                .stream().map(AnimeFranchiseMapper::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AnimeFranchiseDTO getById(String franchiseId) {
+        AnimeFranchise animeFranchise =
+                franchiseRepository.findById(franchiseId)
+                        .orElseThrow(() -> new RuntimeException("anime franchise with ID : " + franchiseId + " not found"));
+        return AnimeFranchiseMapper.mapToDTO(animeFranchise);
     }
 }

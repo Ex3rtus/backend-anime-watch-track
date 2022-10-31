@@ -32,10 +32,6 @@ public class AnimeFranchise {
     @Column(name = "has_been_watched")
     private boolean hasBeenWatched;
 
-    public AnimeFranchise(String franchiseTitle, boolean hasBeenWatched) {
-        this.franchiseTitle = franchiseTitle;
-        this.hasBeenWatched = hasBeenWatched;
-    }
 }
 
 
