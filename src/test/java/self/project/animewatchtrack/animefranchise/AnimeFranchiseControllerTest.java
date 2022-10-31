@@ -10,25 +10,19 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static self.project.animewatchtrack.constants.ResourcePaths.ANIME_FRANCHISE;
-import static self.project.animewatchtrack.constants.ResourcePaths.API;
-import static self.project.animewatchtrack.constants.ResourcePaths.V1;
+import static self.project.animewatchtrack.constants.ResourcePaths.*;
 
 /**
  * @author Youssef Kaïdi.
@@ -47,7 +41,7 @@ class AnimeFranchiseControllerTest {
     private final ObjectMapper jsonMapper = new ObjectMapper();
 
     @Test
-    void itShouldGetListOfAnimeFranchises() throws Exception {
+    void itShouldRetrieveListOfAnimeFranchises() throws Exception {
         AnimeFranchiseDTO franchise1 = AnimeFranchiseDTO.builder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Franchise To Get 1")
@@ -77,7 +71,7 @@ class AnimeFranchiseControllerTest {
     }
 
     @Test
-    void itShouldGetFranchiseById() throws Exception {
+    void itShouldRetrieveFranchiseById() throws Exception {
         String id = UUID.randomUUID().toString();
         AnimeFranchiseDTO animeFranchiseDTO = AnimeFranchiseDTO.builder()
                 .id(id)
@@ -116,5 +110,29 @@ class AnimeFranchiseControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(expected));
+    }
+
+    @Test
+    void itShouldUpdateExisting() throws Exception {
+
+        String franchiseId = UUID.randomUUID().toString();
+        String updatedFranchiseTitle = "Updated Franchise Title";
+        boolean hasBeenWatched = true;
+        AnimeFranchiseDTO updatedFranchiseDTO = AnimeFranchiseDTO.builder()
+                .id(franchiseId)
+                .franchiseTitle(updatedFranchiseTitle)
+                .hasBeenWatched(hasBeenWatched)
+                .build();
+        String responsePayload = jsonMapper.writeValueAsString(updatedFranchiseDTO);
+
+        when(mockedService.updateFranchise(franchiseId, updatedFranchiseTitle, hasBeenWatched))
+                .thenReturn(updatedFranchiseDTO);
+
+        mockMvc.perform(patch(API + V1 + ANIME_FRANCHISE + "/{franchiseId}", franchiseId)
+                .param("franchiseTitle", updatedFranchiseTitle)
+                .param("hasBeenWatched", "true"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(responsePayload));
     }
 }

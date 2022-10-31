@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -23,6 +25,21 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
     private final AnimeFranchiseRepository franchiseRepository;
 
     @Override
+    public List<AnimeFranchiseDTO> getAll() {
+        return franchiseRepository.findAll()
+                .stream().map(AnimeFranchiseMapper::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AnimeFranchiseDTO getById(String franchiseId) {
+        AnimeFranchise animeFranchise =
+                franchiseRepository.findById(franchiseId)
+                        .orElseThrow(() -> new RuntimeException("anime franchise with ID : " + franchiseId + " not found"));
+        return AnimeFranchiseMapper.mapToDTO(animeFranchise);
+    }
+
+    @Override
     public AnimeFranchise addAnimeFranchise(AnimeFranchiseCommand animeFranchiseCommand) {
         String franchiseTitle = animeFranchiseCommand.getFranchiseTitle();
         Optional<AnimeFranchise> animeFranchiseOptional = franchiseRepository.findByFranchiseTitle(franchiseTitle);
@@ -36,17 +53,24 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
     }
 
     @Override
-    public List<AnimeFranchiseDTO> getAll() {
-        return franchiseRepository.findAll()
-                .stream().map(AnimeFranchiseMapper::mapToDTO)
-                .collect(Collectors.toList());
-    }
+    @Transactional
+    public AnimeFranchiseDTO updateFranchise(String franchiseId,
+                                             String newFranchiseTitle,
+                                             boolean newHasBeenWatched) {
+        AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
+                .orElseThrow(
+                        () -> new RuntimeException("anime franchise with ID : " + franchiseId + " not found")
+                );
+        if (newFranchiseTitle != null
+                && newFranchiseTitle.length() > 0
+        && !Objects.equals(newFranchiseTitle, animeFranchise.getFranchiseTitle())) {
+            animeFranchise.setFranchiseTitle(newFranchiseTitle);
+        }
 
-    @Override
-    public AnimeFranchiseDTO getById(String franchiseId) {
-        AnimeFranchise animeFranchise =
-                franchiseRepository.findById(franchiseId)
-                        .orElseThrow(() -> new RuntimeException("anime franchise with ID : " + franchiseId + " not found"));
+        if (newHasBeenWatched != animeFranchise.isHasBeenWatched()) {
+            animeFranchise.setHasBeenWatched(newHasBeenWatched);
+        }
+
         return AnimeFranchiseMapper.mapToDTO(animeFranchise);
     }
 }

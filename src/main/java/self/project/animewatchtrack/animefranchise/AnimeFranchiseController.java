@@ -38,4 +38,12 @@ public class AnimeFranchiseController {
         AnimeFranchise animeFranchise = animeFranchiseService.addAnimeFranchise(animeFranchiseCommand);
         return ResponseEntity.ok(animeFranchise.getId());
     }
+
+    @PatchMapping(path = "/{franchiseId}")
+    public ResponseEntity<AnimeFranchiseDTO> updateFranchise(@PathVariable("franchiseId") String franchiseId,
+                                                             @RequestParam(required = false) String franchiseTitle,
+                                                             @RequestParam(required = false) boolean hasBeenWatched) {
+        AnimeFranchiseDTO responseDTO = animeFranchiseService.updateFranchise(franchiseId, franchiseTitle, hasBeenWatched);
+        return ResponseEntity.ok(responseDTO);
+    }
 }

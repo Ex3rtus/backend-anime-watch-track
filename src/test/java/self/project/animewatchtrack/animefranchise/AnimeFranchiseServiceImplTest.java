@@ -17,8 +17,9 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Youssef Kaïdi.
@@ -137,5 +138,38 @@ class AnimeFranchiseServiceImplTest {
                 .hasMessageContaining("anime franchise with title " + existingFranchiseTitle + " already exists");
 
         verify(franchiseRepository, never()).save(any());
+    }
+
+    @Test
+    void itShouldUpdateAnimeFranchise() {
+        String idFranchiseToUpdate = UUID.randomUUID().toString();
+        boolean initialHasBeenWatched = false;
+        AnimeFranchise initial = AnimeFranchise.builder()
+                .id(idFranchiseToUpdate)
+                .franchiseTitle("Franchise to Update")
+                .hasBeenWatched(initialHasBeenWatched)
+                .build();
+
+        String updatedTitle = "Franchise Updated";
+        AnimeFranchiseDTO expected = AnimeFranchiseDTO.builder()
+                .id(idFranchiseToUpdate)
+                .franchiseTitle(updatedTitle)
+                .hasBeenWatched(!initialHasBeenWatched)
+                .build();
+
+        when(franchiseRepository.findById(idFranchiseToUpdate)).thenReturn(Optional.of(initial));
+
+        AnimeFranchiseDTO updateResult = underTest.updateFranchise(idFranchiseToUpdate, updatedTitle, !initialHasBeenWatched);
+
+        assertThat(updateResult).isEqualTo(expected);
+    }
+
+    @Test
+    void itShouldThrowWhenAttemptingToUpdateNonExistentFranchise() {
+        String fakeFranchiseId = "Fake uuid";
+        String fakeFranchiseTitle = "Fake Title";
+        assertThatThrownBy(() -> underTest.updateFranchise(fakeFranchiseId, fakeFranchiseTitle, false))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("anime franchise with ID : " + fakeFranchiseId + " not found");
     }
 }

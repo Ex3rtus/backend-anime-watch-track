@@ -15,4 +15,6 @@ public interface AnimeFranchiseService {
     List<AnimeFranchiseDTO> getAll();
 
     AnimeFranchiseDTO getById(String franchiseId);
+
+    AnimeFranchiseDTO updateFranchise(String franchiseId, String franchiseTitle, boolean hasBeenWatched);
 }
