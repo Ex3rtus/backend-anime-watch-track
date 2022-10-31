@@ -17,7 +17,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -134,5 +137,14 @@ class AnimeFranchiseControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(responsePayload));
+    }
+
+    @Test
+    void itShouldDeleteAnimeFranchiseById() throws Exception {
+        String franchiseId = UUID.randomUUID().toString();
+
+        mockMvc.perform(delete(API + V1 + ANIME_FRANCHISE + "/{franchiseId}", franchiseId))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 }

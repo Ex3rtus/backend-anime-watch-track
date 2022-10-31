@@ -1,5 +1,7 @@
 package self.project.animewatchtrack.animefranchise;
 
+import org.springframework.http.ResponseEntity;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -17,4 +19,6 @@ public interface AnimeFranchiseService {
     AnimeFranchiseDTO getById(String franchiseId);
 
     AnimeFranchiseDTO updateFranchise(String franchiseId, String franchiseTitle, boolean hasBeenWatched);
+
+    void deleteAnimeFranchise(String franchiseId);
 }

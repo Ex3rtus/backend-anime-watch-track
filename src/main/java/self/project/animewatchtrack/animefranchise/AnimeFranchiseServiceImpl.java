@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
  * @author Youssef Kaïdi.
  * created 26 oct. 2022.
  * TODO: perform data validation in service layer
- *       add safe logger dependency
- *       use custom exceptions
+ * TODO: add safe logger dependency
+ * TODO: use custom exceptions
  */
 
 @AllArgsConstructor
@@ -72,5 +72,13 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
         }
 
         return AnimeFranchiseMapper.mapToDTO(animeFranchise);
+    }
+
+    @Override
+    public void deleteAnimeFranchise(String franchiseId) {
+        if (!franchiseRepository.existsById(franchiseId)) {
+            throw new RuntimeException("anime franchise with ID : " + franchiseId + " not found");
+        }
+        franchiseRepository.deleteById(franchiseId);
     }
 }

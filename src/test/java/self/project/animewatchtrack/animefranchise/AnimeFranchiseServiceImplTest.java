@@ -172,4 +172,25 @@ class AnimeFranchiseServiceImplTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("anime franchise with ID : " + fakeFranchiseId + " not found");
     }
+
+    @Test
+    void itShouldDeleteAnimeFranchiseById() {
+        String id = UUID.randomUUID().toString();
+        when(franchiseRepository.existsById(id)).thenReturn(true);
+
+        underTest.deleteAnimeFranchise(id);
+        verify(franchiseRepository).deleteById(id);
+    }
+
+    @Test
+    void itShouldThrowWhenAttemptingToDeleteNonExistentFranchise() {
+        String id = UUID.randomUUID().toString();
+        when(franchiseRepository.existsById(id)).thenReturn(false);
+
+        assertThatThrownBy(() -> underTest.deleteAnimeFranchise(id))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("anime franchise with ID : " + id + " not found");
+
+        verify(franchiseRepository, never()).deleteById(any());
+    }
 }
