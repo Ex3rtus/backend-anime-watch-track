@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import self.project.animewatchtrack.animefranchise.exceptions.BusinessExceptionFactory;
 
 import javax.transaction.Transactional;
 import java.util.List;
@@ -45,7 +46,9 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
         Optional<AnimeFranchise> animeFranchiseOptional = franchiseRepository.findByFranchiseTitle(franchiseTitle);
 
         if (animeFranchiseOptional.isPresent()) {
-            throw new RuntimeException("anime franchise with title " + franchiseTitle + " already exists");
+            throw BusinessExceptionFactory.getException("FRANCHISE_EXISTS",
+                    "anime franchise with title " + franchiseTitle + " already exists");
+//            throw new RuntimeException("anime franchise with title " + franchiseTitle + " already exists");
         }
 
         AnimeFranchise animeFranchise = AnimeFranchiseMapper.mapToEntity(animeFranchiseCommand);
