@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import self.project.animewatchtrack.exceptions.AnimeFranchiseNotFoundException;
+import self.project.animewatchtrack.exceptions.BadRequestException;
 
 import javax.transaction.Transactional;
 import java.util.List;
@@ -16,7 +18,6 @@ import java.util.stream.Collectors;
  * created 26 oct. 2022.
  * TODO: perform data validation in service layer
  * TODO: add safe logger dependency
- * TODO: use custom exceptions
  */
 
 @AllArgsConstructor
@@ -33,9 +34,11 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
 
     @Override
     public AnimeFranchiseDTO getById(String franchiseId) {
-        AnimeFranchise animeFranchise =
-                franchiseRepository.findById(franchiseId)
-                        .orElseThrow(() -> new RuntimeException("anime franchise with ID : " + franchiseId + " not found"));
+        AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
+                        .orElseThrow(() -> {
+                            String message = "anime franchise with ID : " + franchiseId + " not found";
+                            return new AnimeFranchiseNotFoundException(message);
+                        });
         return AnimeFranchiseMapper.mapToDTO(animeFranchise);
     }
 
@@ -45,7 +48,8 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
         Optional<AnimeFranchise> animeFranchiseOptional = franchiseRepository.findByFranchiseTitle(franchiseTitle);
 
         if (animeFranchiseOptional.isPresent()) {
-            throw new RuntimeException("anime franchise with title " + franchiseTitle + " already exists");
+            String message = "anime franchise with title : " + franchiseTitle + " already exists";
+            throw new BadRequestException(message);
         }
 
         AnimeFranchise animeFranchise = AnimeFranchiseMapper.mapToEntity(animeFranchiseCommand);
@@ -59,7 +63,10 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
                                              boolean newHasBeenWatched) {
         AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
                 .orElseThrow(
-                        () -> new RuntimeException("anime franchise with ID : " + franchiseId + " not found")
+                        () -> {
+                            String message = "anime franchise with ID : " + franchiseId + " not found";
+                            return new AnimeFranchiseNotFoundException(message);
+                        }
                 );
         if (newFranchiseTitle != null
                 && newFranchiseTitle.length() > 0
@@ -77,7 +84,8 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
     @Override
     public void deleteAnimeFranchise(String franchiseId) {
         if (!franchiseRepository.existsById(franchiseId)) {
-            throw new RuntimeException("anime franchise with ID : " + franchiseId + " not found");
+            String message = "anime franchise with ID : " + franchiseId + " not found";
+            throw new AnimeFranchiseNotFoundException(message);
         }
         franchiseRepository.deleteById(franchiseId);
     }

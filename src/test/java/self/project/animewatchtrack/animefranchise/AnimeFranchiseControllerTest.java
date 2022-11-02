@@ -111,7 +111,7 @@ class AnimeFranchiseControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestPayload))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().string(expected));
     }
 

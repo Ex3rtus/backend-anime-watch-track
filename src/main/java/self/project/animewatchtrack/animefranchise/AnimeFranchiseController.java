@@ -1,6 +1,7 @@
 package self.project.animewatchtrack.animefranchise;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,7 @@ public class AnimeFranchiseController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> addNewAnimeFranchise(@RequestBody AnimeFranchiseCommand animeFranchiseCommand) {
         AnimeFranchise animeFranchise = animeFranchiseService.addAnimeFranchise(animeFranchiseCommand);
-        return ResponseEntity.ok(animeFranchise.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(animeFranchise.getId());
     }
 
     @PatchMapping(path = "/{franchiseId}")
