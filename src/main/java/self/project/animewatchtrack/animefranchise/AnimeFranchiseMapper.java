@@ -1,5 +1,7 @@
 package self.project.animewatchtrack.animefranchise;
 
+import java.util.ArrayList;
+
 /**
  * @author Youssef Kaïdi.
  * created 26 oct. 2022.
@@ -9,7 +11,7 @@ public class AnimeFranchiseMapper {
     public static AnimeFranchise mapToEntity(AnimeFranchiseCommand animeFranchiseCommand) {
         return AnimeFranchise.builder()
                 .franchiseTitle(animeFranchiseCommand.getFranchiseTitle())
-                .hasBeenWatched(animeFranchiseCommand.isHasBeenWatched())
+                .hasBeenWatched(animeFranchiseCommand.getHasBeenWatched())
                 .build();
     }
 
@@ -17,7 +19,7 @@ public class AnimeFranchiseMapper {
         return AnimeFranchiseDTO.builder()
                 .id(animeFranchise.getId())
                 .franchiseTitle(animeFranchise.getFranchiseTitle())
-                .hasBeenWatched(animeFranchise.isHasBeenWatched())
+                .hasBeenWatched(animeFranchise.getHasBeenWatched())
                 .build();
     }
 }

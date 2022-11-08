@@ -2,11 +2,11 @@ package self.project.animewatchtrack.animefranchise;
 
 import lombok.AllArgsConstructor;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import self.project.animewatchtrack.exceptions.AnimeFranchiseNotFoundException;
-import self.project.animewatchtrack.exceptions.BadRequestException;
+import self.project.animewatchtrack.exceptions.AnimeFranchiseBadRequestException;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
@@ -16,14 +16,21 @@ import java.util.stream.Collectors;
 /**
  * @author Youssef Kaïdi.
  * created 26 oct. 2022.
- * TODO: perform data validation in service layer
- * TODO: add safe logger dependency
+ * TODO : Perform data validation
+ * TODO : Add safe logger dependency
  */
 
 @AllArgsConstructor
 @Service
 public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
     private final AnimeFranchiseRepository franchiseRepository;
+
+    @Override
+    public AnimeFranchiseDTO getById(String franchiseId) {
+        AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
+                        .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
+        return AnimeFranchiseMapper.mapToDTO(animeFranchise);
+    }
 
     @Override
     public List<AnimeFranchiseDTO> getAll() {
@@ -33,49 +40,37 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
     }
 
     @Override
-    public AnimeFranchiseDTO getById(String franchiseId) {
-        AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
-                        .orElseThrow(() -> {
-                            String message = "anime franchise with ID : " + franchiseId + " not found";
-                            return new AnimeFranchiseNotFoundException(message);
-                        });
-        return AnimeFranchiseMapper.mapToDTO(animeFranchise);
-    }
-
-    @Override
-    public AnimeFranchise addAnimeFranchise(AnimeFranchiseCommand animeFranchiseCommand) {
+    public String addAnimeFranchise(AnimeFranchiseCommand animeFranchiseCommand) {
         String franchiseTitle = animeFranchiseCommand.getFranchiseTitle();
         Optional<AnimeFranchise> animeFranchiseOptional = franchiseRepository.findByFranchiseTitle(franchiseTitle);
 
         if (animeFranchiseOptional.isPresent()) {
-            String message = "anime franchise with title : " + franchiseTitle + " already exists";
-            throw new BadRequestException(message);
+            throw new AnimeFranchiseBadRequestException(franchiseTitle);
         }
 
         AnimeFranchise animeFranchise = AnimeFranchiseMapper.mapToEntity(animeFranchiseCommand);
-        return franchiseRepository.save(animeFranchise);
+        return franchiseRepository.save(animeFranchise).getId();
     }
 
     @Override
     @Transactional
     public AnimeFranchiseDTO updateFranchise(String franchiseId,
                                              String newFranchiseTitle,
-                                             boolean newHasBeenWatched) {
+                                             Boolean newHasBeenWatched) {
+
         AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
-                .orElseThrow(
-                        () -> {
-                            String message = "anime franchise with ID : " + franchiseId + " not found";
-                            return new AnimeFranchiseNotFoundException(message);
-                        }
-                );
+                .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
+
         if (newFranchiseTitle != null
                 && newFranchiseTitle.length() > 0
-        && !Objects.equals(newFranchiseTitle, animeFranchise.getFranchiseTitle())) {
+                && !Objects.equals(newFranchiseTitle, animeFranchise.getFranchiseTitle())) {
             animeFranchise.setFranchiseTitle(newFranchiseTitle);
         }
 
-        if (newHasBeenWatched != animeFranchise.isHasBeenWatched()) {
+        if (newHasBeenWatched != animeFranchise.getHasBeenWatched()) {
             animeFranchise.setHasBeenWatched(newHasBeenWatched);
+            animeFranchise.getAnimes()
+                    .forEach(anime -> anime.setHasBeenWatched(newHasBeenWatched));
         }
 
         return AnimeFranchiseMapper.mapToDTO(animeFranchise);
@@ -84,8 +79,7 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
     @Override
     public void deleteAnimeFranchise(String franchiseId) {
         if (!franchiseRepository.existsById(franchiseId)) {
-            String message = "anime franchise with ID : " + franchiseId + " not found";
-            throw new AnimeFranchiseNotFoundException(message);
+            throw new AnimeFranchiseNotFoundException(franchiseId);
         }
         franchiseRepository.deleteById(franchiseId);
     }

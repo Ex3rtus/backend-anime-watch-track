@@ -14,6 +14,6 @@ import lombok.*;
 public class AnimeFranchiseCommand {
 
     private String franchiseTitle;
-    private boolean hasBeenWatched;
+    private Boolean hasBeenWatched;
 
 }

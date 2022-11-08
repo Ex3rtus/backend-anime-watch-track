@@ -2,9 +2,11 @@ package self.project.animewatchtrack.animefranchise;
 
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
+import self.project.animewatchtrack.anime.Anime;
 
 import javax.persistence.*;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Youssef Kaïdi.
@@ -12,7 +14,6 @@ import java.util.UUID;
  */
 
 @Data
-@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,8 +31,25 @@ public class AnimeFranchise {
     private String franchiseTitle;
 
     @Column(name = "has_been_watched")
-    private boolean hasBeenWatched;
+    private Boolean hasBeenWatched;
 
+    @OneToMany(
+            mappedBy = "animeFranchise",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @ToString.Exclude
+    private List<Anime> animes = new ArrayList<>();
+
+    public void addAnime(Anime anime) {
+        animes.add(anime);
+        anime.setAnimeFranchise(this);
+    }
+
+    public void removeAnime(Anime anime) {
+        animes.remove(anime);
+        anime.setAnimeFranchise(null);
+    }
 }
 
 
