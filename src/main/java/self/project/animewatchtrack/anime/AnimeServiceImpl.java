@@ -73,7 +73,7 @@ public class AnimeServiceImpl implements AnimeService {
         }
 
         if (airYear!= null && airYear > 0
-                && Objects.equals(airYear, anime.getInitialAirYear())) {
+                && !Objects.equals(airYear, anime.getInitialAirYear())) {
             anime.setInitialAirYear(airYear);
         }
 
