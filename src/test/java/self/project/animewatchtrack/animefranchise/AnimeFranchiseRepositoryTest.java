@@ -18,11 +18,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 class AnimeFranchiseRepositoryTest {
 
     @Autowired
-    private AnimeFranchiseRepository underTest;
+    private AnimeFranchiseRepository repositoryUnderTest;
 
     @AfterEach
     void tearDown() {
-        underTest.deleteAll();
+        repositoryUnderTest.deleteAll();
     }
 
     @Test
@@ -33,16 +33,16 @@ class AnimeFranchiseRepositoryTest {
                 .franchiseTitle(thisFranchiseExists)
                 .hasBeenWatched(false)
                 .build();
-        underTest.save(animeFranchise);
+        repositoryUnderTest.save(animeFranchise);
 
-        boolean result = underTest.findByFranchiseTitle(thisFranchiseExists).isPresent();
+        boolean result = repositoryUnderTest.findByFranchiseTitle(thisFranchiseExists).isPresent();
         assertThat(result).isTrue();
     }
 
     @Test
     void itShouldFailToFindFranchiseByTitle() {
         String thisFranchiseDoesntExist = "This Franchise Doesn't Exist";
-        boolean result = underTest.findByFranchiseTitle(thisFranchiseDoesntExist).isPresent();
+        boolean result = repositoryUnderTest.findByFranchiseTitle(thisFranchiseDoesntExist).isPresent();
         assertThat(result).isFalse();
     }
 }

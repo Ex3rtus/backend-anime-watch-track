@@ -12,13 +12,13 @@ import java.util.UUID;
 
 public interface AnimeFranchiseService {
 
-    AnimeFranchise addAnimeFranchise(AnimeFranchiseCommand animeFranchiseCommand);
+    AnimeFranchiseDTO getById(String franchiseId);
 
     List<AnimeFranchiseDTO> getAll();
 
-    AnimeFranchiseDTO getById(String franchiseId);
+    String addAnimeFranchise(AnimeFranchiseCommand animeFranchiseCommand);
 
-    AnimeFranchiseDTO updateFranchise(String franchiseId, String franchiseTitle, boolean hasBeenWatched);
+    AnimeFranchiseDTO updateFranchise(String franchiseId, String franchiseTitle, Boolean hasBeenWatched);
 
     void deleteAnimeFranchise(String franchiseId);
 }

@@ -5,8 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 /**
  * @author Youssef Kaïdi.
  * created 26 oct. 2022.
@@ -14,10 +12,9 @@ import java.util.UUID;
 
 @Builder
 @EqualsAndHashCode
-@Setter
 @Getter
 public class AnimeFranchiseDTO {
     private String id;
     private String franchiseTitle;
-    private boolean hasBeenWatched;
+    private Boolean hasBeenWatched;
 }

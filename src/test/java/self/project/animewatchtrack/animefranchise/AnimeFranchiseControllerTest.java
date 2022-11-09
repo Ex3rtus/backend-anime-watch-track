@@ -16,6 +16,7 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -61,16 +62,16 @@ class AnimeFranchiseControllerTest {
 
         when(mockedService.getAll()).thenReturn(expectedDTOList);
 
-        mockMvc.perform(get(API + V1 + ANIME_FRANCHISE))
+        mockMvc.perform(get(API + V1 + ANIME_FRANCHISES))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(equalTo(2))))
                 .andExpect(jsonPath("$[0].id", equalTo(franchise1.getId())))
                 .andExpect(jsonPath("$[0].franchiseTitle", equalTo(franchise1.getFranchiseTitle())))
-                .andExpect(jsonPath("$[0].hasBeenWatched", equalTo(franchise1.isHasBeenWatched())))
+                .andExpect(jsonPath("$[0].hasBeenWatched", equalTo(franchise1.getHasBeenWatched())))
                 .andExpect(jsonPath("$[1].id", equalTo(franchise2.getId())))
                 .andExpect(jsonPath("$[1].franchiseTitle", equalTo(franchise2.getFranchiseTitle())))
-                .andExpect(jsonPath("$[1].hasBeenWatched", equalTo(franchise2.isHasBeenWatched())));
+                .andExpect(jsonPath("$[1].hasBeenWatched", equalTo(franchise2.getHasBeenWatched())));
     }
 
     @Test
@@ -87,7 +88,7 @@ class AnimeFranchiseControllerTest {
         when(mockedService.getById(id))
                 .thenReturn(animeFranchiseDTO);
 
-        mockMvc.perform(get(API + V1 + ANIME_FRANCHISE + "/{id}", id)
+        mockMvc.perform(get(API + V1 + ANIME_FRANCHISES + "/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(responsePayload));
@@ -97,16 +98,13 @@ class AnimeFranchiseControllerTest {
     void itShouldAddNewAnimeFranchise() throws Exception {
 
         AnimeFranchiseCommand animeFranchiseCommand = new AnimeFranchiseCommand("Should Add", false);
-        AnimeFranchise animeFranchise = AnimeFranchiseMapper.mapToEntity(animeFranchiseCommand);
-        animeFranchise.setId(UUID.randomUUID().toString());
-
+        String expected = UUID.randomUUID().toString();
         String requestPayload = jsonMapper.writeValueAsString(animeFranchiseCommand);
 
         when(mockedService.addAnimeFranchise(any(AnimeFranchiseCommand.class)))
-                .thenReturn(animeFranchise);
-        String expected = animeFranchise.getId();
+                .thenReturn(expected);
 
-        mockMvc.perform(post(API + V1 + ANIME_FRANCHISE)
+        mockMvc.perform(post(API + V1 + ANIME_FRANCHISES)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestPayload))
@@ -116,11 +114,11 @@ class AnimeFranchiseControllerTest {
     }
 
     @Test
-    void itShouldUpdateExisting() throws Exception {
+    void itShouldUpdateExistingAnimeFranchise() throws Exception {
 
         String franchiseId = UUID.randomUUID().toString();
         String updatedFranchiseTitle = "Updated Franchise Title";
-        boolean hasBeenWatched = true;
+        Boolean hasBeenWatched = true;
         AnimeFranchiseDTO updatedFranchiseDTO = AnimeFranchiseDTO.builder()
                 .id(franchiseId)
                 .franchiseTitle(updatedFranchiseTitle)
@@ -131,20 +129,22 @@ class AnimeFranchiseControllerTest {
         when(mockedService.updateFranchise(franchiseId, updatedFranchiseTitle, hasBeenWatched))
                 .thenReturn(updatedFranchiseDTO);
 
-        mockMvc.perform(patch(API + V1 + ANIME_FRANCHISE + "/{franchiseId}", franchiseId)
+        mockMvc.perform(patch(API + V1 + ANIME_FRANCHISES + "/{franchiseId}", franchiseId)
                 .param("franchiseTitle", updatedFranchiseTitle)
                 .param("hasBeenWatched", "true"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(responsePayload));
+        verify(mockedService).updateFranchise(franchiseId, updatedFranchiseTitle, hasBeenWatched);
     }
 
     @Test
     void itShouldDeleteAnimeFranchiseById() throws Exception {
         String franchiseId = UUID.randomUUID().toString();
 
-        mockMvc.perform(delete(API + V1 + ANIME_FRANCHISE + "/{franchiseId}", franchiseId))
+        mockMvc.perform(delete(API + V1 + ANIME_FRANCHISES + "/{franchiseId}", franchiseId))
                 .andDo(print())
                 .andExpect(status().isOk());
+        verify(mockedService).deleteAnimeFranchise(franchiseId);
     }
 }
