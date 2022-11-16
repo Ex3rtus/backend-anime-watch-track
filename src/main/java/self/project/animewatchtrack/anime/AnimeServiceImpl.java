@@ -56,6 +56,7 @@ public class AnimeServiceImpl implements AnimeService {
                 .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
         Anime anime = AnimeMapper.mapToEntity(animeCommand);
         animeFranchise.addAnime(anime);
+
         return animeRepository.save(anime).getId();
     }
 
@@ -66,8 +67,7 @@ public class AnimeServiceImpl implements AnimeService {
         Anime anime = animeRepository.findById(animeId)
                 .orElseThrow(() -> new AnimeNotFoundExeption(animeId));
 
-        if (animeTitle != null
-                && animeTitle.length() > 0
+        if (animeTitle != null && animeTitle.length() > 0
                 && !Objects.equals(animeTitle, anime.getAnimeTitle())) {
             anime.setAnimeTitle(animeTitle);
         }

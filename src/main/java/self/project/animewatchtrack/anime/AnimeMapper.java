@@ -1,7 +1,5 @@
 package self.project.animewatchtrack.anime;
 
-import self.project.animewatchtrack.animefranchise.AnimeFranchise;
-
 /**
  * @author Youssef Kaïdi.
  * created 02 nov. 2022.

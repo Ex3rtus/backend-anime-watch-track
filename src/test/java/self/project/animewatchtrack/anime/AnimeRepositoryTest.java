@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +36,7 @@ class AnimeRepositoryTest {
                 .animeTitle(existingAnimeTitle)
                 .initialAirYear(1970)
                 .originalMangaAuthors(List.of("Manga 1 Author 1"))
+                .seasons(new ArrayList<>())
                 .hasBeenWatched(false)
                 .build();
 

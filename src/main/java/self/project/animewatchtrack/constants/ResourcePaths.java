@@ -15,4 +15,5 @@ public class ResourcePaths {
     public static final String ANIME_FRANCHISES = "/animefranchises";
 
     public static final String ANIMES = "/animes";
+    public static final String ANIME_SEASONS = "/animeseasons";
 }

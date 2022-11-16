@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
  */
 
 @ExtendWith(MockitoExtension.class)
-class AnimeFranchiseServiceImplTest {
+class AnimeFranchiseServiceTest {
     @Mock
     private AnimeFranchiseRepository franchiseRepository;
     private AnimeFranchiseServiceImpl underTest;

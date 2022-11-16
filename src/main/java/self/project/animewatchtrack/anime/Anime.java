@@ -2,10 +2,11 @@ package self.project.animewatchtrack.anime;
 
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
-import self.project.animewatchtrack.animefranchise.AnimeFranchise;
-
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
+import self.project.animewatchtrack.animefranchise.AnimeFranchise;
+import self.project.animewatchtrack.animeseason.AnimeSeason;
 
 /**
  * @author Youssef Kaïdi.
@@ -47,7 +48,24 @@ public class Anime {
     )
     private List<String> originalMangaAuthors;
 
+    @OneToMany(
+            mappedBy = "anime",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @ToString.Exclude
+    private List<AnimeSeason> seasons = new ArrayList<>();
+
     @Column(name = "has_been_watched")
     private Boolean hasBeenWatched;
 
+    public void addSeason(AnimeSeason season) {
+        seasons.add(season);
+        season.setAnime(this);
+    }
+
+    public void removeSeason(AnimeSeason season) {
+        seasons.remove(season);
+        season.setSeasonNumber(null);
+    }
 }
