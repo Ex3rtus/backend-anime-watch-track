@@ -28,7 +28,7 @@ class AnimeFranchiseRepositoryTest {
     @Test
     void itShouldFindFranchiseByTitle() {
         String thisFranchiseExists = "This Franchise Exists";
-        AnimeFranchise animeFranchise = AnimeFranchise.builder()
+        AnimeFranchise animeFranchise = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle(thisFranchiseExists)
                 .hasBeenWatched(false)

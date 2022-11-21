@@ -18,7 +18,8 @@ import java.util.stream.Collectors;
  * @author Youssef Kaïdi.
  * created 02 nov. 2022.
  * TODO : Perform data validation in service layer
- * TODO : Add safe logger dependency
+ * TODO : Use logger
+ * TODO : Look for cleaner way of of marking as watched/nonwatched
  */
 
 @AllArgsConstructor
@@ -63,9 +64,15 @@ public class AnimeServiceImpl implements AnimeService {
     @Override
     @Transactional
     public AnimeDTO updateAnime(String animeId, String animeTitle, Integer airYear,
-                                List<String> mangaAuthors, Boolean hasBeenWatched) {
+                                List<String> mangaAuthors, Boolean newHasBeenWatched) {
         Anime anime = animeRepository.findById(animeId)
                 .orElseThrow(() -> new AnimeNotFoundExeption(animeId));
+
+        if (newHasBeenWatched!= null) {
+            anime.getStrategyMap()
+                    .get(newHasBeenWatched)
+                    .markAnimeAndCascadeDown(anime);
+        }
 
         if (animeTitle != null && animeTitle.length() > 0
                 && !Objects.equals(animeTitle, anime.getAnimeTitle())) {
@@ -80,10 +87,6 @@ public class AnimeServiceImpl implements AnimeService {
         if (!mangaAuthors.isEmpty()
                 && !Objects.equals(mangaAuthors, anime.getOriginalMangaAuthors())) {
             anime.setOriginalMangaAuthors(mangaAuthors);
-        }
-
-        if (hasBeenWatched!= null && hasBeenWatched != anime.getHasBeenWatched()) {
-            anime.setHasBeenWatched(hasBeenWatched);
         }
 
         return AnimeMapper.mapToDTO(anime);

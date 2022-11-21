@@ -12,7 +12,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import self.project.animewatchtrack.animefranchise.AnimeFranchise;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,14 +53,13 @@ class AnimeControllerTest {
 
     @BeforeAll
     static void setup() {
-        parentFranchise = AnimeFranchise.builder()
+        parentFranchise = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Parent Franchise Title")
                 .hasBeenWatched(false)
-                .animes(new ArrayList<>())
                 .build();
 
-        anime1 = Anime.builder()
+        anime1 = new Anime().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .animeTitle("Anime 1 Title")
                 .initialAirYear(1970)
@@ -69,7 +67,7 @@ class AnimeControllerTest {
                 .hasBeenWatched(false)
                 .build();
 
-        anime2 = Anime.builder()
+        anime2 = new Anime().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .animeTitle("Anime 2 Title")
                 .initialAirYear(1997)

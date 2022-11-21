@@ -10,7 +10,6 @@ import self.project.animewatchtrack.anime.AnimeRepository;
 import self.project.animewatchtrack.exceptions.AnimeSeasonBadRequest;
 import self.project.animewatchtrack.exceptions.AnimeSeasonNotFoundException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,7 +38,6 @@ class AnimeSeasonServiceIntegrationTest {
     private Anime parentAnime;
     private AnimeSeason seasonOne;
     private AnimeSeason seasonTwo;
-
     private AnimeSeasonCommand seasonCommand;
 
     @BeforeEach
@@ -47,15 +45,14 @@ class AnimeSeasonServiceIntegrationTest {
         animeRepository.deleteAll();
         animeSeasonRepository.deleteAll();
 
-        parentAnime = Anime.builder()
+        parentAnime = new Anime().toBuilder()
                 .animeTitle("Anime Title")
                 .initialAirYear(1970)
                 .originalMangaAuthors(List.of("Manga Author 1"))
-                .seasons(new ArrayList<>())
                 .hasBeenWatched(false)
                 .build();
 
-        seasonOne = AnimeSeason.builder()
+        seasonOne = new AnimeSeason().toBuilder()
                 .seasonNumber(1)
                 .totalEpisodesCount(158)
                 .currentWatchCount(158)
@@ -160,7 +157,7 @@ class AnimeSeasonServiceIntegrationTest {
     void itShouldUpdateExistingSeason() {
         Integer newTotalEpisodesCount = seasonOne.getTotalEpisodesCount() + 20;
         Integer newCurrentWatchCount = seasonOne.getCurrentWatchCount() + 5;
-        AnimeSeason updateExpectation = AnimeSeason.builder()
+        AnimeSeason updateExpectation = new AnimeSeason().toBuilder()
                 .id(seasonOne.getId())
                 .seasonNumber(seasonOne.getSeasonNumber() + 3)
                 .totalEpisodesCount(newTotalEpisodesCount)

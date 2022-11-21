@@ -8,7 +8,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import self.project.animewatchtrack.exceptions.AnimeFranchiseBadRequestException;
 import self.project.animewatchtrack.exceptions.AnimeFranchiseNotFoundException;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,40 +31,51 @@ class AnimeFranchiseServiceTest {
     private AnimeFranchiseRepository franchiseRepository;
     private AnimeFranchiseServiceImpl underTest;
 
+    private AnimeFranchise franchise1;
+    private AnimeFranchise franchise2;
+
     @BeforeEach
     void setUp() {
         underTest = new AnimeFranchiseServiceImpl(franchiseRepository);
-    }
 
-    @Test
-    void itShouldGetFranchiseById() {
-        String id = UUID.randomUUID().toString();
-        AnimeFranchise franchiseToFind = AnimeFranchise.builder()
-                .id(id)
+        franchise1 = new AnimeFranchise().toBuilder()
+                .id(UUID.randomUUID().toString())
                 .franchiseTitle("Franchise To Find")
                 .hasBeenWatched(false)
                 .build();
 
-        AnimeFranchiseDTO expected = AnimeFranchiseMapper.mapToDTO(franchiseToFind);
+        franchise2 = new AnimeFranchise().toBuilder()
+                .id(UUID.randomUUID().toString())
+                .franchiseTitle("Franchise To Get 2")
+                .hasBeenWatched(true)
+                .build();
+    }
 
-        when(franchiseRepository.findById(franchiseToFind.getId()))
-                .thenReturn(Optional.of(franchiseToFind));
+    @Test
+    void itShouldGetFranchiseById() {
+        String id = franchise1.getId();
+        AnimeFranchiseDTO expected = AnimeFranchiseMapper.mapToDTO(franchise1);
 
-        assertThat(underTest.getById(id)).isEqualTo(expected);
+        when(franchiseRepository.findById(franchise1.getId()))
+                .thenReturn(Optional.of(franchise1));
+
+        AnimeFranchiseDTO resultDTO = underTest.getById(id);
+
+        assertThat(resultDTO).isEqualTo(expected);
         verify(franchiseRepository).findById(id);
     }
 
     @Test
-    void itShouldThrowWhenAttemptingToFindFranchiseByInvalidId() {
-        String fakeUUID = "Believe me, i'm a uuid turned into a string";
-        String exceptionMessage = "anime franchise with ID : " + fakeUUID + " not found";
+    void itShouldThrowWhenAttemptingToFindNonexistentFranchiseById() {
+        String nonPersistedFranchiseId = UUID.randomUUID().toString();
+        String exceptionMessage = "anime franchise with ID : " + nonPersistedFranchiseId + " not found";
         AnimeFranchiseNotFoundException exceptionToBeThrown =
-                new AnimeFranchiseNotFoundException(fakeUUID);
+                new AnimeFranchiseNotFoundException(nonPersistedFranchiseId);
 
-        when(franchiseRepository.findById(fakeUUID))
+        when(franchiseRepository.findById(nonPersistedFranchiseId))
                 .thenThrow(exceptionToBeThrown);
 
-        assertThatThrownBy(() -> underTest.getById(fakeUUID))
+        assertThatThrownBy(() -> underTest.getById(nonPersistedFranchiseId))
                 .isInstanceOf(AnimeFranchiseNotFoundException.class)
                 .hasMessageContaining(exceptionMessage);
     }
@@ -69,24 +83,12 @@ class AnimeFranchiseServiceTest {
     @Test
     void itShouldReturnAnEmptyAnimeFranchiseList() {
         List<AnimeFranchiseDTO> result = underTest.getAll();
-        verify(franchiseRepository).findAll();
         assertThat(result.isEmpty()).isTrue();
+        verify(franchiseRepository).findAll();
     }
 
     @Test
     void itShouldReturnAPopulatedAnimeFranchiseList() {
-        AnimeFranchise franchise1 = AnimeFranchise.builder()
-                .id(UUID.randomUUID().toString())
-                .franchiseTitle("Franchise To Get 1")
-                .hasBeenWatched(false)
-                .build();
-
-        AnimeFranchise franchise2 = AnimeFranchise.builder()
-                .id(UUID.randomUUID().toString())
-                .franchiseTitle("Franchise To Get 2")
-                .hasBeenWatched(true)
-                .build();
-
         List<AnimeFranchise> fixture = Arrays.asList(franchise1, franchise2);
         when(franchiseRepository.findAll()).thenReturn(fixture);
 
@@ -96,6 +98,7 @@ class AnimeFranchiseServiceTest {
 
         List<AnimeFranchiseDTO> result = underTest.getAll();
         assertThat(result).isEqualTo(expected);
+        verify(franchiseRepository).findAll();
     }
 
     @Test
@@ -110,13 +113,14 @@ class AnimeFranchiseServiceTest {
                 .thenReturn(expectedAnimeFranchise);
         String resultId = underTest.addAnimeFranchise(animeFranchiseCommand);
 
-        verify(franchiseRepository).save(any(AnimeFranchise.class));
         assertThat(resultId).isEqualTo(expectedId);
+        verify(franchiseRepository).findByFranchiseTitle(animeFranchiseCommand.getFranchiseTitle());
+        verify(franchiseRepository).save(any(AnimeFranchise.class));
     }
 
     @Test
     void itShouldThrowWhenAttemptingToCreateAnAnimeFranchiseThatExists() {
-        String existingFranchiseTitle = "Already Existing Franchise";
+        String existingFranchiseTitle = franchise1.getFranchiseTitle();
         AnimeFranchiseCommand animeFranchiseCommand =
                 new AnimeFranchiseCommand(existingFranchiseTitle, false);
         String exceptionMessage = "anime franchise with title : " + existingFranchiseTitle + " already exists";
@@ -130,19 +134,14 @@ class AnimeFranchiseServiceTest {
                 .isInstanceOf(AnimeFranchiseBadRequestException.class)
                 .hasMessageContaining(exceptionMessage);
 
+        verify(franchiseRepository).findByFranchiseTitle(existingFranchiseTitle);
         verify(franchiseRepository, never()).save(any());
     }
 
     @Test
     void itShouldUpdateAnimeFranchise() {
-        String idFranchiseToUpdate = UUID.randomUUID().toString();
-        boolean initialHasBeenWatched = false;
-        AnimeFranchise initial = AnimeFranchise.builder()
-                .id(idFranchiseToUpdate)
-                .franchiseTitle("Franchise to Update")
-                .hasBeenWatched(initialHasBeenWatched)
-                .animes(new ArrayList<>())
-                .build();
+        String idFranchiseToUpdate = franchise1.getId();
+        boolean initialHasBeenWatched = franchise2.getHasBeenWatched();
 
         String updatedTitle = "Franchise Updated";
         AnimeFranchiseDTO expected = AnimeFranchiseDTO.builder()
@@ -151,7 +150,7 @@ class AnimeFranchiseServiceTest {
                 .hasBeenWatched(!initialHasBeenWatched)
                 .build();
 
-        when(franchiseRepository.findById(idFranchiseToUpdate)).thenReturn(Optional.of(initial));
+        when(franchiseRepository.findById(idFranchiseToUpdate)).thenReturn(Optional.of(franchise1));
 
         AnimeFranchiseDTO updateResult =
                 underTest.updateFranchise(idFranchiseToUpdate, updatedTitle, !initialHasBeenWatched);
@@ -161,11 +160,14 @@ class AnimeFranchiseServiceTest {
 
     @Test
     void itShouldThrowWhenAttemptingToUpdateNonExistentFranchise() {
-        String fakeFranchiseId = "Fake uuid";
-        String fakeFranchiseTitle = "Fake Title";
-        String exceptionMessage = "anime franchise with ID : " + fakeFranchiseId + " not found";
-        assertThatThrownBy(() -> underTest.updateFranchise(fakeFranchiseId, fakeFranchiseTitle, false))
-                .isInstanceOf(AnimeFranchiseNotFoundException.class)
+        String nonexistentFranchiseId = UUID.randomUUID().toString();
+        String fakeFranchiseTitle = "Nonexistent Franchise Title";
+        String exceptionMessage = "anime franchise with ID : " + nonexistentFranchiseId + " not found";
+        assertThatThrownBy(() ->
+                underTest.updateFranchise(nonexistentFranchiseId,
+                        fakeFranchiseTitle,
+                        false
+        )).isInstanceOf(AnimeFranchiseNotFoundException.class)
                 .hasMessageContaining(exceptionMessage);
     }
 
@@ -179,7 +181,7 @@ class AnimeFranchiseServiceTest {
     }
 
     @Test
-    void itShouldThrowWhenAttemptingToDeleteNonExistentFranchise() {
+    void itShouldThrowWhenAttemptingToDeleteNonexistentFranchise() {
         String id = UUID.randomUUID().toString();
         String exceptionMessage = "anime franchise with ID : " + id + " not found";
         when(franchiseRepository.existsById(id)).thenReturn(false);

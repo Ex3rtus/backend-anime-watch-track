@@ -6,7 +6,9 @@ import self.project.animewatchtrack.anime.Anime;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Youssef Kaïdi.
@@ -14,9 +16,8 @@ import java.util.List;
  */
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Entity
 @Table(name = "anime_franchises")
 public class AnimeFranchise {
@@ -39,7 +40,19 @@ public class AnimeFranchise {
             orphanRemoval = true
     )
     @ToString.Exclude
-    private List<Anime> animes = new ArrayList<>();
+    private List<Anime> animes;
+
+    @Transient
+    @Setter(AccessLevel.NONE)
+    @ToString.Exclude
+    private Map<Boolean, FranchiseMarkerStrategy> strategyMap;
+
+    public AnimeFranchise() {
+        animes = new ArrayList<>();
+        strategyMap = new HashMap<>();
+        strategyMap.put(Boolean.TRUE, new WatchedFranchiseMarkerStrategy());
+        strategyMap.put(Boolean.FALSE, new NotWatchedFranchiseMarkerStrategy());
+    }
 
     public void addAnime(Anime anime) {
         animes.add(anime);
@@ -50,6 +63,7 @@ public class AnimeFranchise {
         animes.remove(anime);
         anime.setAnimeFranchise(null);
     }
+
 }
 
 

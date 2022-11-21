@@ -8,7 +8,7 @@ package self.project.animewatchtrack.anime;
 public class AnimeMapper {
 
     public static Anime mapToEntity(AnimeCommand animeCommand) {
-        return Anime.builder()
+        return new Anime().toBuilder()
                 .animeTitle(animeCommand.getAnimeTitle())
                 .initialAirYear(animeCommand.getInitialAirYear())
                 .originalMangaAuthors(animeCommand.getOriginalMangaAuthors())

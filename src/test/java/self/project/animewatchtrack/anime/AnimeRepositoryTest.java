@@ -31,7 +31,7 @@ class AnimeRepositoryTest {
     @Test
     void itShouldFindAnimeByTitle() {
         String existingAnimeTitle = "Anime Title";
-        Anime anime = Anime.builder()
+        Anime anime = new Anime().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .animeTitle(existingAnimeTitle)
                 .initialAirYear(1970)

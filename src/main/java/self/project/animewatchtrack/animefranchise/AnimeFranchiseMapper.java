@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class AnimeFranchiseMapper {
     public static AnimeFranchise mapToEntity(AnimeFranchiseCommand animeFranchiseCommand) {
-        return AnimeFranchise.builder()
+        return new AnimeFranchise().toBuilder()
                 .franchiseTitle(animeFranchiseCommand.getFranchiseTitle())
                 .hasBeenWatched(animeFranchiseCommand.getHasBeenWatched())
                 .build();

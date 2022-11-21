@@ -1,6 +1,7 @@
 package self.project.animewatchtrack.animefranchise;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -44,21 +45,32 @@ class AnimeFranchiseControllerTest {
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
 
-    @Test
-    void itShouldRetrieveListOfAnimeFranchises() throws Exception {
-        AnimeFranchiseDTO franchise1 = AnimeFranchiseDTO.builder()
+    private static AnimeFranchiseDTO franchiseDTO1;
+
+    private static AnimeFranchiseDTO franchiseDTO2;
+
+    private static AnimeFranchiseCommand franchiseCommand;
+
+    @BeforeAll
+    static void setup() {
+        franchiseDTO1 = AnimeFranchiseDTO.builder()
                 .id(UUID.randomUUID().toString())
-                .franchiseTitle("Franchise To Get 1")
+                .franchiseTitle("Franchise 1")
                 .hasBeenWatched(false)
                 .build();
 
-        AnimeFranchiseDTO franchise2 = AnimeFranchiseDTO.builder()
+        franchiseDTO2 = AnimeFranchiseDTO.builder()
                 .id(UUID.randomUUID().toString())
-                .franchiseTitle("Franchise To Get 2")
+                .franchiseTitle("Franchise 2")
                 .hasBeenWatched(true)
                 .build();
 
-        List<AnimeFranchiseDTO> expectedDTOList = List.of(franchise1, franchise2);
+        franchiseCommand = new AnimeFranchiseCommand("Should Add", false);
+    }
+
+    @Test
+    void itShouldRetrieveListOfAnimeFranchises() throws Exception {
+        List<AnimeFranchiseDTO> expectedDTOList = List.of(franchiseDTO1, franchiseDTO2);
 
         when(mockedService.getAll()).thenReturn(expectedDTOList);
 
@@ -66,40 +78,36 @@ class AnimeFranchiseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(equalTo(2))))
-                .andExpect(jsonPath("$[0].id", equalTo(franchise1.getId())))
-                .andExpect(jsonPath("$[0].franchiseTitle", equalTo(franchise1.getFranchiseTitle())))
-                .andExpect(jsonPath("$[0].hasBeenWatched", equalTo(franchise1.getHasBeenWatched())))
-                .andExpect(jsonPath("$[1].id", equalTo(franchise2.getId())))
-                .andExpect(jsonPath("$[1].franchiseTitle", equalTo(franchise2.getFranchiseTitle())))
-                .andExpect(jsonPath("$[1].hasBeenWatched", equalTo(franchise2.getHasBeenWatched())));
+                .andExpect(jsonPath("$[0].id", equalTo(franchiseDTO1.getId())))
+                .andExpect(jsonPath("$[0].franchiseTitle", equalTo(franchiseDTO1.getFranchiseTitle())))
+                .andExpect(jsonPath("$[0].hasBeenWatched", equalTo(franchiseDTO1.getHasBeenWatched())))
+                .andExpect(jsonPath("$[1].id", equalTo(franchiseDTO2.getId())))
+                .andExpect(jsonPath("$[1].franchiseTitle", equalTo(franchiseDTO2.getFranchiseTitle())))
+                .andExpect(jsonPath("$[1].hasBeenWatched", equalTo(franchiseDTO2.getHasBeenWatched())));
+
+        verify(mockedService).getAll();
     }
 
     @Test
     void itShouldRetrieveFranchiseById() throws Exception {
-        String id = UUID.randomUUID().toString();
-        AnimeFranchiseDTO animeFranchiseDTO = AnimeFranchiseDTO.builder()
-                .id(id)
-                .franchiseTitle("Franchise Name")
-                .hasBeenWatched(true)
-                .build();
-
-        String responsePayload = jsonMapper.writeValueAsString(animeFranchiseDTO);
+        String id = franchiseDTO1.getId();
+        String responsePayload = jsonMapper.writeValueAsString(franchiseDTO1);
 
         when(mockedService.getById(id))
-                .thenReturn(animeFranchiseDTO);
+                .thenReturn(franchiseDTO1);
 
         mockMvc.perform(get(API + V1 + ANIME_FRANCHISES + "/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(responsePayload));
+
+        verify(mockedService).getById(id);
     }
 
     @Test
     void itShouldAddNewAnimeFranchise() throws Exception {
-
-        AnimeFranchiseCommand animeFranchiseCommand = new AnimeFranchiseCommand("Should Add", false);
         String expected = UUID.randomUUID().toString();
-        String requestPayload = jsonMapper.writeValueAsString(animeFranchiseCommand);
+        String requestPayload = jsonMapper.writeValueAsString(franchiseCommand);
 
         when(mockedService.addAnimeFranchise(any(AnimeFranchiseCommand.class)))
                 .thenReturn(expected);
@@ -115,15 +123,15 @@ class AnimeFranchiseControllerTest {
 
     @Test
     void itShouldUpdateExistingAnimeFranchise() throws Exception {
-
-        String franchiseId = UUID.randomUUID().toString();
-        String updatedFranchiseTitle = "Updated Franchise Title";
+        String franchiseId = franchiseDTO1.getId();
+        String updatedFranchiseTitle = "New Franchise 1 Title";
         Boolean hasBeenWatched = true;
         AnimeFranchiseDTO updatedFranchiseDTO = AnimeFranchiseDTO.builder()
                 .id(franchiseId)
                 .franchiseTitle(updatedFranchiseTitle)
                 .hasBeenWatched(hasBeenWatched)
                 .build();
+
         String responsePayload = jsonMapper.writeValueAsString(updatedFranchiseDTO);
 
         when(mockedService.updateFranchise(franchiseId, updatedFranchiseTitle, hasBeenWatched))
@@ -140,7 +148,7 @@ class AnimeFranchiseControllerTest {
 
     @Test
     void itShouldDeleteAnimeFranchiseById() throws Exception {
-        String franchiseId = UUID.randomUUID().toString();
+        String franchiseId = franchiseDTO2.getId();
 
         mockMvc.perform(delete(API + V1 + ANIME_FRANCHISES + "/{franchiseId}", franchiseId))
                 .andDo(print())

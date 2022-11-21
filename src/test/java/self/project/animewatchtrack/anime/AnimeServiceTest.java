@@ -1,9 +1,9 @@
 package self.project.animewatchtrack.anime;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import self.project.animewatchtrack.animefranchise.AnimeFranchise;
@@ -20,7 +20,6 @@ import static org.mockito.Mockito.*;
 /**
  * @author Youssef Kaïdi.
  * created 04 nov. 2022.
- * TODO : fix stubbing arguments mismatch in itShouldAddAnime() test
  */
 
 @ExtendWith(MockitoExtension.class)
@@ -32,7 +31,6 @@ class AnimeServiceTest {
     @Mock
     private AnimeFranchiseRepository franchiseRepository;
 
-    @InjectMocks
     private AnimeServiceImpl serviceUnderTest;
 
     private AnimeFranchise parentFranchise;
@@ -45,14 +43,14 @@ class AnimeServiceTest {
     @BeforeEach
     void setup() {
         serviceUnderTest = new AnimeServiceImpl(animeRepository, franchiseRepository);
-        parentFranchise = AnimeFranchise.builder()
+
+        parentFranchise = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Parent Franchise Title")
                 .hasBeenWatched(false)
-                .animes(new ArrayList<>())
                 .build();
 
-        anime1 = Anime.builder()
+        anime1 = new Anime().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .animeTitle("Anime 1 Title")
                 .initialAirYear(1970)
@@ -60,7 +58,7 @@ class AnimeServiceTest {
                 .hasBeenWatched(false)
                 .build();
 
-        anime2 = Anime.builder()
+        anime2 = new Anime().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .animeTitle("Anime 2 Title")
                 .initialAirYear(1997)
@@ -95,15 +93,15 @@ class AnimeServiceTest {
     }
 
     @Test
-    void itShouldThrowWhenAttemptingToFindAnimeByInvalidId() {
-        String fakeId = "Trust me, me no fake";
-        String exceptionMessage = "anime with ID : " + fakeId + " not found";
-        AnimeNotFoundExeption exceptionToBeThrown = new AnimeNotFoundExeption(fakeId);
+    void itShouldThrowWhenAttemptingToFindNonexistentAnimeById() {
+        String nonPersistedAnimeId = UUID.randomUUID().toString();
+        String exceptionMessage = "anime with ID : " + nonPersistedAnimeId + " not found";
+        AnimeNotFoundExeption exceptionToBeThrown = new AnimeNotFoundExeption(nonPersistedAnimeId);
 
-        when(animeRepository.findById(fakeId))
+        when(animeRepository.findById(nonPersistedAnimeId))
                 .thenThrow(exceptionToBeThrown);
 
-        assertThatThrownBy(() -> serviceUnderTest.getById(fakeId))
+        assertThatThrownBy(() -> serviceUnderTest.getById(nonPersistedAnimeId))
                 .isInstanceOf(AnimeNotFoundExeption.class)
                 .hasMessageContaining(exceptionMessage);
     }
@@ -130,7 +128,6 @@ class AnimeServiceTest {
     @Test
     void itShouldAddAnime() {
         String franchiseId = parentFranchise.getId();
-//        Anime expectedAnimeNullId = AnimeMapper.mapToEntity(animeCommand);
         Anime expectedAnime = AnimeMapper.mapToEntity(animeCommand);
         String expectedId = UUID.randomUUID().toString();
         expectedAnime.setId(expectedId);
@@ -167,6 +164,8 @@ class AnimeServiceTest {
         assertThatThrownBy(() -> serviceUnderTest.addAnime(franchiseId, existingAnimeCommand))
                 .isInstanceOf(AnimeBadRequestException.class)
                 .hasMessageContaining(exceptionMessage);
+
+        verify(animeRepository).findByTitle(existingAnimeTitle);
         verify(animeRepository, never()).save(any());
     }
 
@@ -215,13 +214,13 @@ class AnimeServiceTest {
 
         serviceUnderTest.deleteAnime(animeId);
 
-        assertThat(parentFranchise.getAnimes().size() == 1).isTrue();
+        assertThat(parentFranchise.getAnimes().size()).isEqualTo(1);
         verify(animeRepository).deleteById(animeId);
     }
 
     @Test
-    void itShouldThrowWhenAttemptingToDeleteAnime() {
-        String animeId = "Nonexistent Anime ID";
+    void itShouldThrowWhenAttemptingToDeleteNonexistentAnime() {
+        String animeId = UUID.randomUUID().toString();
         String exceptionMessage = "anime with ID : " + animeId + " not found";
 
         assertThatThrownBy(() -> serviceUnderTest.deleteAnime(animeId))

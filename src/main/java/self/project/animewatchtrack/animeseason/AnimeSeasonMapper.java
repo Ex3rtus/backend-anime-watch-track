@@ -18,7 +18,7 @@ public class AnimeSeasonMapper {
     }
 
     public static AnimeSeason mapToEntity(AnimeSeasonCommand animeSeasonCommand) {
-        return AnimeSeason.builder()
+        return new AnimeSeason().toBuilder()
                 .seasonNumber(animeSeasonCommand.getSeasonNumber())
                 .totalEpisodesCount(animeSeasonCommand.getTotalEpisodesCount())
                 .currentWatchCount(animeSeasonCommand.getCurrentWatchCount())

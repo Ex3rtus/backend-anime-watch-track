@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import self.project.animewatchtrack.exceptions.AnimeFranchiseNotFoundException;
 import self.project.animewatchtrack.exceptions.AnimeFranchiseBadRequestException;
 
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
@@ -17,7 +16,8 @@ import java.util.stream.Collectors;
  * @author Youssef Kaïdi.
  * created 26 oct. 2022.
  * TODO : Perform data validation
- * TODO : Add safe logger dependency
+ * TODO : Use logger
+ * TODO : Look for cleaner way of of marking as watched/nonwatched
  */
 
 @AllArgsConstructor
@@ -61,16 +61,16 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
         AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
                 .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
 
+        if (newHasBeenWatched!= null) {
+            animeFranchise.getStrategyMap()
+                    .get(newHasBeenWatched)
+                    .markFranchiseAndCascadeDown(animeFranchise);
+        }
+
         if (newFranchiseTitle != null
                 && newFranchiseTitle.length() > 0
                 && !Objects.equals(newFranchiseTitle, animeFranchise.getFranchiseTitle())) {
             animeFranchise.setFranchiseTitle(newFranchiseTitle);
-        }
-
-        if (newHasBeenWatched != animeFranchise.getHasBeenWatched()) {
-            animeFranchise.setHasBeenWatched(newHasBeenWatched);
-            animeFranchise.getAnimes()
-                    .forEach(anime -> anime.setHasBeenWatched(newHasBeenWatched));
         }
 
         return AnimeFranchiseMapper.mapToDTO(animeFranchise);

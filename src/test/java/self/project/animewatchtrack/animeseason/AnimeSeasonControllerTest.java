@@ -57,23 +57,21 @@ class AnimeSeasonControllerTest {
 
     @BeforeAll
     static void setup() {
-        parentFranchise = AnimeFranchise.builder()
+        parentFranchise = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Parent Franchise Title")
                 .hasBeenWatched(false)
-                .animes(new ArrayList<>())
                 .build();
 
-        parentAnime = Anime.builder()
+        parentAnime = new Anime().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .animeTitle("Anime Title")
                 .initialAirYear(1970)
                 .originalMangaAuthors(List.of("Manga Author 1"))
-                .seasons(new ArrayList<>())
                 .hasBeenWatched(false)
                 .build();
 
-        seasonOne = AnimeSeason.builder()
+        seasonOne = new AnimeSeason().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .seasonNumber(1)
                 .totalEpisodesCount(158)
@@ -81,7 +79,7 @@ class AnimeSeasonControllerTest {
                 .hasBeenWatched(true)
                 .build();
 
-        seasonTwo = AnimeSeason.builder()
+        seasonTwo = new AnimeSeason().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .seasonNumber(2)
                 .totalEpisodesCount(108)

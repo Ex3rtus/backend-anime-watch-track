@@ -2,11 +2,14 @@ package self.project.animewatchtrack.anime;
 
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 import self.project.animewatchtrack.animefranchise.AnimeFranchise;
 import self.project.animewatchtrack.animeseason.AnimeSeason;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Youssef Kaïdi.
@@ -14,9 +17,8 @@ import self.project.animewatchtrack.animeseason.AnimeSeason;
  */
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Entity
 @Table(name = "animes")
 public class Anime {
@@ -54,10 +56,23 @@ public class Anime {
             orphanRemoval = true
     )
     @ToString.Exclude
-    private List<AnimeSeason> seasons = new ArrayList<>();
+    private List<AnimeSeason> seasons;
 
     @Column(name = "has_been_watched")
     private Boolean hasBeenWatched;
+
+    @Transient
+    @Setter(AccessLevel.NONE)
+    @ToString.Exclude
+    private Map<Boolean, AnimeMarkerStrategy> strategyMap;
+
+    public Anime() {
+        seasons = new ArrayList<>();
+        originalMangaAuthors = new ArrayList<>();
+        strategyMap = new HashMap<>();
+        strategyMap.put(Boolean.TRUE, new WatchedAnimeMarkerStrategy());
+        strategyMap.put(Boolean.FALSE, new NotWatchedAnimeMarkerStrategy());
+    }
 
     public void addSeason(AnimeSeason season) {
         seasons.add(season);
@@ -66,6 +81,7 @@ public class Anime {
 
     public void removeSeason(AnimeSeason season) {
         seasons.remove(season);
-        season.setSeasonNumber(null);
+        season.setAnime(null);
     }
+
 }

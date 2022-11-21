@@ -6,14 +6,16 @@ import javax.persistence.*;
 
 import self.project.animewatchtrack.anime.Anime;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Youssef Kaïdi.
  * created 09 nov. 2022.
  */
 
 @Data
-@NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @Entity
 @Table(name = "anime_seasons")
@@ -41,6 +43,17 @@ public class AnimeSeason {
 
     @Column(name = "has_been_watched")
     private Boolean hasBeenWatched;
+
+    @Transient
+    @Setter(AccessLevel.NONE)
+    @ToString.Exclude
+    private Map<Boolean, SeasonMarkerStrategy> strategyMap;
+
+    public AnimeSeason() {
+        strategyMap = new HashMap<>();
+        strategyMap.put(Boolean.TRUE, new WatchedSeasonMarkerStrategy());
+        strategyMap.put(Boolean.FALSE, new NotWatchedSeasonMarkerStrategy());
+    }
 
 }
 
