@@ -10,11 +10,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import self.project.animewatchtrack.anime.Anime;
-import self.project.animewatchtrack.anime.AnimeCommand;
 import self.project.animewatchtrack.animefranchise.AnimeFranchise;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,7 +20,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -40,20 +37,18 @@ class AnimeSeasonControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private AnimeSeasonService mockedService;
-
     private final ObjectMapper jsonMapper = new ObjectMapper();
-
     private static AnimeFranchise parentFranchise;
     private static Anime parentAnime;
     private static AnimeSeason seasonOne;
     private static AnimeSeason seasonTwo;
     private static AnimeSeasonDTO seasonOneDTO;
-
     private static AnimeSeasonDTO seasonTwoDTO;
     private static AnimeSeasonCommand seasonCommand;
+    private final static String BASE_URI = API + V1 + ANIME_FRANCHISES + "/{franchiseId}"
+            + ANIMES + "/{animeId}" + ANIME_SEASONS;;
 
     @BeforeAll
     static void setup() {
@@ -112,8 +107,7 @@ class AnimeSeasonControllerTest {
         when(mockedService.getById(seasonOneId))
                 .thenReturn(seasonOneDTO);
 
-        mockMvc.perform(get(API + V1 + ANIME_FRANCHISES + "/{franchiseId}" +
-                ANIMES + "/{animeId}" + ANIME_SEASONS + "/{seasonId}", franchiseId, animeId, seasonOneId))
+        mockMvc.perform(get(BASE_URI + "/{seasonId}", franchiseId, animeId, seasonOneId))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedPayload));
 
@@ -128,8 +122,7 @@ class AnimeSeasonControllerTest {
 
         when(mockedService.getAll()).thenReturn(expectedDTOList);
 
-        mockMvc.perform(get(API + V1 + ANIME_FRANCHISES + "/{franchiseId}" +
-                ANIMES + "/{animeId}" + ANIME_SEASONS, franchiseId, animeId))
+        mockMvc.perform(get(BASE_URI, franchiseId, animeId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(equalTo(2))))
@@ -159,8 +152,7 @@ class AnimeSeasonControllerTest {
         when(mockedService.addAnimeSeason(any(String.class), any(AnimeSeasonCommand.class)))
                 .thenReturn(expectedId);
 
-        mockMvc.perform(post(API + V1 + ANIME_FRANCHISES +
-                "/{franchiseId}" + ANIMES + "/{animeId}" + ANIME_SEASONS, franchiseId, animeId)
+        mockMvc.perform(post(BASE_URI, franchiseId, animeId)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestPayload))
@@ -188,13 +180,10 @@ class AnimeSeasonControllerTest {
         when(mockedService.updateAnimeSeason(
                 expectedDTO.getId(),
                 expectedDTO.getSeasonNumber(),
-                expectedDTO.getTotalEpisodesCount(),
-                expectedDTO.getCurrentWatchCount(),
-                expectedDTO.getHasBeenWatched()
+                expectedDTO.getTotalEpisodesCount()
         )).thenReturn(expectedDTO);
 
-        mockMvc.perform(patch(API + V1 + ANIME_FRANCHISES +
-                "/{franchiseId}" + ANIMES + "/{animeId}" + ANIME_SEASONS + "/{seasonId}",
+        mockMvc.perform(patch(BASE_URI + "/{seasonId}",
                 franchiseId, animeId, seasonId)
                 .param("seasonNumber", expectedDTO.getSeasonNumber().toString())
                 .param("totalEpisodesCount", expectedDTO.getTotalEpisodesCount().toString())
@@ -206,10 +195,90 @@ class AnimeSeasonControllerTest {
         verify(mockedService).updateAnimeSeason(
                 expectedDTO.getId(),
                 expectedDTO.getSeasonNumber(),
-                expectedDTO.getTotalEpisodesCount(),
-                expectedDTO.getCurrentWatchCount(),
-                expectedDTO.getHasBeenWatched()
+                expectedDTO.getTotalEpisodesCount()
         );
+    }
+
+    @Test
+    void itShouldMarkExistingAnimeSeasonAsNotWatchedAndResetWatchCount() throws Exception {
+        String franchiseId = parentFranchise.getId();
+        String animeId = parentAnime.getId();
+        String seasonId = seasonTwoDTO.getId();
+
+        AnimeSeasonDTO expectedDTO = AnimeSeasonDTO.builder()
+                .id(seasonId)
+                .parentAnimeTitle(seasonTwoDTO.getParentAnimeTitle())
+                .seasonNumber(seasonTwoDTO.getSeasonNumber())
+                .currentWatchCount(0)
+                .hasBeenWatched(false)
+                .build();
+
+        String expectedPayload = jsonMapper.writeValueAsString(expectedDTO);
+
+        when(mockedService.markAnimeSeason(seasonId, false))
+                .thenReturn(expectedDTO);
+
+        mockMvc.perform(patch(BASE_URI + "/{seasonId}" + MARK, franchiseId, animeId, seasonId)
+                        .param("hasBeenWatched", expectedDTO.getHasBeenWatched().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedPayload));
+
+        verify(mockedService).markAnimeSeason(seasonId, false);
+    }
+
+    @Test
+    void itShouldMarkExistingAnimeSeasonAsWatchedAndUpdateWatchCount() throws Exception {
+        String franchiseId = parentFranchise.getId();
+        String animeId = parentAnime.getId();
+        String seasonId = seasonTwoDTO.getId();
+
+        AnimeSeasonDTO expectedDTO = AnimeSeasonDTO.builder()
+                .id(seasonTwoDTO.getId())
+                .parentAnimeTitle(seasonTwoDTO.getParentAnimeTitle())
+                .seasonNumber(seasonTwoDTO.getSeasonNumber())
+                .currentWatchCount(seasonTwoDTO.getTotalEpisodesCount())
+                .hasBeenWatched(true)
+                .build();
+
+        String expectedPayload = jsonMapper.writeValueAsString(expectedDTO);
+
+        when(mockedService.markAnimeSeason(seasonTwoDTO.getId(), true))
+                .thenReturn(expectedDTO);
+
+        mockMvc.perform(patch(BASE_URI + "/{seasonId}" + MARK, franchiseId, animeId, seasonId)
+                .param("hasBeenWatched", expectedDTO.getHasBeenWatched().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedPayload));
+
+        verify(mockedService).markAnimeSeason(seasonId, true);
+    }
+
+    @Test
+    void itShouldUpdateWatchCount() throws Exception {
+        String franchiseId = parentFranchise.getId();
+        String animeId = parentAnime.getId();
+        String seasonId = seasonTwoDTO.getId();
+        Integer newWatchCount = seasonTwoDTO.getCurrentWatchCount() + 42;
+
+        AnimeSeasonDTO expectedDTO = AnimeSeasonDTO.builder()
+                .id(seasonTwoDTO.getId())
+                .parentAnimeTitle(seasonTwoDTO.getParentAnimeTitle())
+                .seasonNumber(seasonTwoDTO.getSeasonNumber())
+                .currentWatchCount(newWatchCount)
+                .hasBeenWatched(seasonTwoDTO.getHasBeenWatched())
+                .build();
+
+        String expectedPayload = jsonMapper.writeValueAsString(expectedDTO);
+
+        when(mockedService.watchEpisodes(seasonTwoDTO.getId(), newWatchCount))
+                .thenReturn(expectedDTO);
+
+        mockMvc.perform(patch(BASE_URI + "/{seasonId}" + WATCH, franchiseId, animeId, seasonId)
+                        .param("watchCount", expectedDTO.getCurrentWatchCount().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedPayload));
+
+        verify(mockedService).watchEpisodes(seasonId, newWatchCount);
     }
 
     @Test
@@ -218,10 +287,8 @@ class AnimeSeasonControllerTest {
         String animeId = parentAnime.getId();
         String seasonId = seasonTwo.getId();
 
-        mockMvc.perform(delete(API + V1 + ANIME_FRANCHISES +
-                        "/{franchiseId}" + ANIMES + "/{animeId}" + ANIME_SEASONS + "/{seasonId}",
-                franchiseId, animeId, seasonId))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete(BASE_URI + "/{seasonId}", franchiseId, animeId, seasonId))
+                .andExpect(status().isNoContent());
         parentAnime.removeSeason(seasonTwo);
 
         assertThat(parentAnime.getSeasons().size()).isEqualTo(1);

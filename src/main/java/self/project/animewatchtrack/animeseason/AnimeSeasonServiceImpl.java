@@ -2,13 +2,13 @@ package self.project.animewatchtrack.animeseason;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import self.project.animewatchtrack.anime.Anime;
 import self.project.animewatchtrack.anime.AnimeRepository;
 import self.project.animewatchtrack.exceptions.AnimeNotFoundExeption;
 import self.project.animewatchtrack.exceptions.AnimeSeasonBadRequest;
 import self.project.animewatchtrack.exceptions.AnimeSeasonNotFoundException;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
  * created 09 nov. 2022.
  * TODO : Perform data validation
  * TODO : Use logger
- * TODO : Look for cleaner way of of marking as watched/nonwatched
  */
 
 @AllArgsConstructor
@@ -64,16 +63,10 @@ public class AnimeSeasonServiceImpl implements AnimeSeasonService {
 
     @Override
     @Transactional
-    public AnimeSeasonDTO updateAnimeSeason(String seasonId, Integer seasonNumber, Integer totalEpisodesCount,
-                                            Integer currentWatchCount, Boolean newHasBeenWatched) {
+    public AnimeSeasonDTO updateAnimeSeason(String seasonId,
+                                            Integer seasonNumber,Integer totalEpisodesCount) {
         AnimeSeason animeSeason = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new AnimeSeasonNotFoundException(seasonId));
-
-        if (newHasBeenWatched != null) {
-            animeSeason.getStrategyMap()
-                    .get(newHasBeenWatched)
-                    .markSeason(animeSeason);
-        }
 
         if (seasonNumber != null && seasonNumber > 0
                 && !Objects.equals(seasonNumber, animeSeason.getSeasonNumber())) {
@@ -85,10 +78,40 @@ public class AnimeSeasonServiceImpl implements AnimeSeasonService {
             animeSeason.setTotalEpisodesCount(totalEpisodesCount);
         }
 
-        if (currentWatchCount != null && currentWatchCount > 0
-                && currentWatchCount <= animeSeason.getTotalEpisodesCount()
-                && !Objects.equals(currentWatchCount, animeSeason.getCurrentWatchCount())) {
-            animeSeason.setCurrentWatchCount(currentWatchCount);
+        return AnimeSeasonMapper.mapToDTO(animeSeason);
+    }
+
+    @Override
+    @Transactional
+    public AnimeSeasonDTO markAnimeSeason(String seasonId, Boolean newHasBeenWatched) {
+        AnimeSeason animeSeason = seasonRepository.findById(seasonId)
+                .orElseThrow(() -> new AnimeSeasonNotFoundException(seasonId));
+
+        if (newHasBeenWatched != null) {
+            animeSeason.getStrategyMap()
+                    .get(newHasBeenWatched)
+                    .markSeason(animeSeason);
+        }
+
+        return AnimeSeasonMapper.mapToDTO(animeSeason);
+    }
+
+    @Override
+    @Transactional
+    public AnimeSeasonDTO watchEpisodes(String seasonId, Integer newWatchCount) {
+        AnimeSeason animeSeason = seasonRepository.findById(seasonId)
+                .orElseThrow(() -> new AnimeSeasonNotFoundException(seasonId));
+
+        if (Objects.equals(newWatchCount, animeSeason.getTotalEpisodesCount())) {
+            animeSeason.getStrategyMap()
+                    .get(Boolean.TRUE)
+                    .markSeason(animeSeason);
+        }
+
+        if (newWatchCount != null && newWatchCount > 0
+                && newWatchCount < animeSeason.getTotalEpisodesCount()
+                && !Objects.equals(newWatchCount, animeSeason.getCurrentWatchCount())) {
+            animeSeason.setCurrentWatchCount(newWatchCount);
         }
 
         return AnimeSeasonMapper.mapToDTO(animeSeason);

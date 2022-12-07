@@ -2,13 +2,13 @@ package self.project.animewatchtrack.anime;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import self.project.animewatchtrack.animefranchise.AnimeFranchise;
 import self.project.animewatchtrack.animefranchise.AnimeFranchiseRepository;
 import self.project.animewatchtrack.exceptions.AnimeBadRequestException;
 import self.project.animewatchtrack.exceptions.AnimeFranchiseNotFoundException;
 import self.project.animewatchtrack.exceptions.AnimeNotFoundExeption;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
  * created 02 nov. 2022.
  * TODO : Perform data validation in service layer
  * TODO : Use logger
- * TODO : Look for cleaner way of of marking as watched/nonwatched
  */
 
 @AllArgsConstructor
@@ -63,16 +62,9 @@ public class AnimeServiceImpl implements AnimeService {
 
     @Override
     @Transactional
-    public AnimeDTO updateAnime(String animeId, String animeTitle, Integer airYear,
-                                List<String> mangaAuthors, Boolean newHasBeenWatched) {
+    public AnimeDTO updateAnime(String animeId, String animeTitle, Integer airYear, List<String> mangaAuthors) {
         Anime anime = animeRepository.findById(animeId)
                 .orElseThrow(() -> new AnimeNotFoundExeption(animeId));
-
-        if (newHasBeenWatched!= null) {
-            anime.getStrategyMap()
-                    .get(newHasBeenWatched)
-                    .markAnimeAndCascadeDown(anime);
-        }
 
         if (animeTitle != null && animeTitle.length() > 0
                 && !Objects.equals(animeTitle, anime.getAnimeTitle())) {
@@ -87,6 +79,21 @@ public class AnimeServiceImpl implements AnimeService {
         if (!mangaAuthors.isEmpty()
                 && !Objects.equals(mangaAuthors, anime.getOriginalMangaAuthors())) {
             anime.setOriginalMangaAuthors(mangaAuthors);
+        }
+
+        return AnimeMapper.mapToDTO(anime);
+    }
+
+    @Override
+    @Transactional
+    public AnimeDTO markAnime(String animeId, Boolean newHasBeenWatched) {
+        Anime anime = animeRepository.findById(animeId)
+                .orElseThrow(() -> new AnimeNotFoundExeption(animeId));
+
+        if (newHasBeenWatched!= null) {
+            anime.getStrategyMap()
+                    .get(newHasBeenWatched)
+                    .markAnimeAndCascadeDown(anime);
         }
 
         return AnimeMapper.mapToDTO(anime);

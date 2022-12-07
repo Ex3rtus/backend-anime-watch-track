@@ -15,10 +15,12 @@ public interface AnimeSeasonService {
 
     String addAnimeSeason(String animeId, AnimeSeasonCommand animeSeasonCommand);
 
-    AnimeSeasonDTO updateAnimeSeason(String seasonId, Integer seasonNumber,
-                                     Integer totalEpisodesCount, Integer currentWatchCount,
-                                     Boolean hasBeenWatched);
+    AnimeSeasonDTO updateAnimeSeason(String seasonId,
+                                     Integer seasonNumber, Integer totalEpisodesCount);
+
+    AnimeSeasonDTO markAnimeSeason(String seasonId, Boolean newHasBeenWatched);
 
     void deleteAnimeSeason(String seasonId);
 
+    AnimeSeasonDTO watchEpisodes(String seasonId, Integer newWatchCount);
 }

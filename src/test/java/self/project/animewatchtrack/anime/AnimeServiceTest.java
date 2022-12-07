@@ -1,6 +1,5 @@
 package self.project.animewatchtrack.anime;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +10,10 @@ import self.project.animewatchtrack.animefranchise.AnimeFranchiseRepository;
 import self.project.animewatchtrack.exceptions.AnimeBadRequestException;
 import self.project.animewatchtrack.exceptions.AnimeNotFoundExeption;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -27,12 +29,9 @@ class AnimeServiceTest {
 
     @Mock
     private AnimeRepository animeRepository;
-
     @Mock
     private AnimeFranchiseRepository franchiseRepository;
-
     private AnimeServiceImpl serviceUnderTest;
-
     private AnimeFranchise parentFranchise;
     private Anime anime1;
     private Anime anime2;
@@ -63,7 +62,7 @@ class AnimeServiceTest {
                 .animeTitle("Anime 2 Title")
                 .initialAirYear(1997)
                 .originalMangaAuthors(List.of("Manga 2 Author 1 ", "Manga 2 Author 2"))
-                .hasBeenWatched(false)
+                .hasBeenWatched(true)
                 .build();
 
         parentFranchise.addAnime(anime1);
@@ -172,25 +171,27 @@ class AnimeServiceTest {
     @Test
     void itShouldUpdateAnime() {
         String existingId = anime1.getId();
-        boolean initialValue = anime1.getHasBeenWatched();
         List<String> newListOfOriginalMangaAuthors = List.of("New Manga Author", "Collaborating Manga Author");
         String newTitle = "New Title";
+        Integer newInitialAirYear = anime1DTO.getInitialAirYear() + 1;
         AnimeDTO expectedDTO = AnimeDTO.builder()
                 .id(existingId)
-                .parentFranchiseTitle(anime1.getAnimeFranchise().getFranchiseTitle())
+                .parentFranchiseTitle(anime1DTO.getParentFranchiseTitle())
                 .animeTitle(newTitle)
-                .initialAirYear(anime1.getInitialAirYear())
+                .initialAirYear(newInitialAirYear)
                 .originalMangaAuthors(newListOfOriginalMangaAuthors)
-                .hasBeenWatched(!initialValue)
+                .hasBeenWatched(anime1DTO.getHasBeenWatched())
                 .build();
 
         when(animeRepository.findById(existingId))
                 .thenReturn(Optional.of(anime1));
 
         AnimeDTO resultDTO = serviceUnderTest.updateAnime(existingId, newTitle,
-                anime1.getInitialAirYear(), newListOfOriginalMangaAuthors, !initialValue);
+                newInitialAirYear, newListOfOriginalMangaAuthors);
 
-        assertThat(resultDTO).isEqualTo(expectedDTO);
+        assertThat(resultDTO.getAnimeTitle()).isEqualTo(expectedDTO.getAnimeTitle());
+        assertThat(resultDTO.getInitialAirYear()).isEqualTo(expectedDTO.getInitialAirYear());
+        assertThat(resultDTO.getOriginalMangaAuthors()).isEqualTo(expectedDTO.getOriginalMangaAuthors());
         verify(animeRepository).findById(existingId);
     }
 
@@ -200,7 +201,59 @@ class AnimeServiceTest {
         String exceptionMessage = "anime with ID : " + animeId + " not found";
 
         assertThatThrownBy(() -> serviceUnderTest.updateAnime(animeId, "Anime Title",
-                anime1.getInitialAirYear(), anime1.getOriginalMangaAuthors(), false))
+                anime1.getInitialAirYear(), anime1.getOriginalMangaAuthors()))
+                .isInstanceOf(AnimeNotFoundExeption.class)
+                .hasMessageContaining(exceptionMessage);
+    }
+
+    @Test
+    void itShouldMarkAnimeAsWatched() {
+        String animeId = anime1DTO.getId();
+        AnimeDTO expectedDTO = AnimeDTO.builder()
+                .id(animeId)
+                .parentFranchiseTitle(anime1DTO.getParentFranchiseTitle())
+                .animeTitle(anime1DTO.getAnimeTitle())
+                .initialAirYear(anime1DTO.getInitialAirYear())
+                .originalMangaAuthors(anime1DTO.getOriginalMangaAuthors())
+                .hasBeenWatched(true)
+                .build();
+
+        when(animeRepository.findById(animeId))
+                .thenReturn(Optional.of(anime1));
+
+        AnimeDTO resultDTO = serviceUnderTest.markAnime(animeId, true);
+
+        assertThat(resultDTO).isEqualTo(expectedDTO);
+        verify(animeRepository).findById(animeId);
+    }
+
+    @Test
+    void itShouldMarkAnimeAsNotWatched() {
+        String animeId = anime2DTO.getId();
+        AnimeDTO expectedDTO = AnimeDTO.builder()
+                .id(animeId)
+                .parentFranchiseTitle(anime2DTO.getParentFranchiseTitle())
+                .animeTitle(anime2DTO.getAnimeTitle())
+                .initialAirYear(anime2DTO.getInitialAirYear())
+                .originalMangaAuthors(anime2DTO.getOriginalMangaAuthors())
+                .hasBeenWatched(false)
+                .build();
+
+        when(animeRepository.findById(animeId))
+                .thenReturn(Optional.of(anime2));
+
+        AnimeDTO resultDTO = serviceUnderTest.markAnime(animeId, false);
+
+        assertThat(resultDTO).isEqualTo(expectedDTO);
+        verify(animeRepository).findById(animeId);
+    }
+
+    @Test
+    void itShouldThrowWhenAttemptingToMarkNonexistentAnime() {
+        String animeId = "Nonexistent Anime ID";
+        String exceptionMessage = "anime with ID : " + animeId + " not found";
+
+        assertThatThrownBy(() -> serviceUnderTest.markAnime(animeId, true))
                 .isInstanceOf(AnimeNotFoundExeption.class)
                 .hasMessageContaining(exceptionMessage);
     }

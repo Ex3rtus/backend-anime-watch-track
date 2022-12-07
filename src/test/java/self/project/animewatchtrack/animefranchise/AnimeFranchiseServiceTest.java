@@ -30,7 +30,6 @@ class AnimeFranchiseServiceTest {
     @Mock
     private AnimeFranchiseRepository franchiseRepository;
     private AnimeFranchiseServiceImpl underTest;
-
     private AnimeFranchise franchise1;
     private AnimeFranchise franchise2;
 
@@ -153,7 +152,7 @@ class AnimeFranchiseServiceTest {
         when(franchiseRepository.findById(idFranchiseToUpdate)).thenReturn(Optional.of(franchise1));
 
         AnimeFranchiseDTO updateResult =
-                underTest.updateFranchise(idFranchiseToUpdate, updatedTitle, !initialHasBeenWatched);
+                underTest.updateFranchise(idFranchiseToUpdate, updatedTitle);
 
         assertThat(updateResult).isEqualTo(expected);
     }
@@ -165,9 +164,54 @@ class AnimeFranchiseServiceTest {
         String exceptionMessage = "anime franchise with ID : " + nonexistentFranchiseId + " not found";
         assertThatThrownBy(() ->
                 underTest.updateFranchise(nonexistentFranchiseId,
-                        fakeFranchiseTitle,
-                        false
+                        fakeFranchiseTitle
         )).isInstanceOf(AnimeFranchiseNotFoundException.class)
+                .hasMessageContaining(exceptionMessage);
+    }
+
+    @Test
+    void itShouldMarkAnimeAsWatched() {
+        String franchiseId = franchise1.getId();
+        AnimeFranchiseDTO expectedDTO = AnimeFranchiseDTO.builder()
+                .id(franchiseId)
+                .franchiseTitle(franchise1.getFranchiseTitle())
+                .hasBeenWatched(true)
+                .build();
+
+        when(franchiseRepository.findById(franchiseId))
+                .thenReturn(Optional.of(franchise1));
+
+        AnimeFranchiseDTO resultDTO = underTest.markFranchise(franchiseId, true);
+
+        assertThat(resultDTO).isEqualTo(expectedDTO);
+        verify(franchiseRepository).findById(franchiseId);
+    }
+
+    @Test
+    void itShouldMarkAnimeAsNotWatched() {
+        String franchiseId = franchise2.getId();
+        AnimeFranchiseDTO expectedDTO = AnimeFranchiseDTO.builder()
+                .id(franchiseId)
+                .franchiseTitle(franchise2.getFranchiseTitle())
+                .hasBeenWatched(false)
+                .build();
+
+        when(franchiseRepository.findById(franchiseId))
+                .thenReturn(Optional.of(franchise2));
+
+        AnimeFranchiseDTO resultDTO = underTest.markFranchise(franchiseId, false);
+
+        assertThat(resultDTO).isEqualTo(expectedDTO);
+        verify(franchiseRepository).findById(franchiseId);
+    }
+
+    @Test
+    void itShouldThrowWhenAttemptingToMarkNonexistentAnime() {
+        String franchiseId = "Nonexistent Anime ID";
+        String exceptionMessage = "anime franchise with ID : " + franchiseId + " not found";
+
+        assertThatThrownBy(() -> underTest.markFranchise(franchiseId, true))
+                .isInstanceOf(AnimeFranchiseNotFoundException.class)
                 .hasMessageContaining(exceptionMessage);
     }
 

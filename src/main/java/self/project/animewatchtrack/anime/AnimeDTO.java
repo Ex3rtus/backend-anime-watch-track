@@ -1,9 +1,10 @@
 package self.project.animewatchtrack.anime;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.List;
-
 
 /**
  * @author Youssef Kaïdi.
@@ -11,8 +12,8 @@ import java.util.List;
  */
 
 @Builder
-@EqualsAndHashCode
 @Getter
+@EqualsAndHashCode
 public class AnimeDTO {
     private String id;
     private String parentFranchiseTitle;
@@ -21,3 +22,4 @@ public class AnimeDTO {
     private List<String> originalMangaAuthors;
     private Boolean hasBeenWatched;
 }
+

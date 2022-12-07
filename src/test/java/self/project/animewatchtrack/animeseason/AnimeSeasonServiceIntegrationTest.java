@@ -28,13 +28,10 @@ class AnimeSeasonServiceIntegrationTest {
 
     @Autowired
     private AnimeSeasonRepository animeSeasonRepository;
-
     @Autowired
     private AnimeRepository animeRepository;
-
     @Autowired
     private AnimeSeasonServiceImpl animeSeasonService;
-
     private Anime parentAnime;
     private AnimeSeason seasonOne;
     private AnimeSeason seasonTwo;
@@ -59,7 +56,7 @@ class AnimeSeasonServiceIntegrationTest {
                 .hasBeenWatched(true)
                 .build();
 
-        seasonTwo = AnimeSeason.builder()
+        seasonTwo = new AnimeSeason().toBuilder()
                 .seasonNumber(2)
                 .totalEpisodesCount(108)
                 .currentWatchCount(5)
@@ -98,11 +95,11 @@ class AnimeSeasonServiceIntegrationTest {
     @Test
     void itShouldThrowWhenAttemptingToFindByIdANonexistentSeason() {
         String nonPersistedSeasonId = UUID.randomUUID().toString();
-        String expectionMessage = "anime season with ID : " + nonPersistedSeasonId + " not found";
+        String exceptionMessage = "anime season with ID : " + nonPersistedSeasonId + " not found";
 
         assertThatThrownBy(() -> animeSeasonService.getById(nonPersistedSeasonId))
                 .isInstanceOf(AnimeSeasonNotFoundException.class)
-                .hasMessage(expectionMessage);
+                .hasMessage(exceptionMessage);
     }
 
     @Test
@@ -156,26 +153,22 @@ class AnimeSeasonServiceIntegrationTest {
     @Transactional
     void itShouldUpdateExistingSeason() {
         Integer newTotalEpisodesCount = seasonOne.getTotalEpisodesCount() + 20;
-        Integer newCurrentWatchCount = seasonOne.getCurrentWatchCount() + 5;
+        Integer newSeasonNumber = seasonOne.getSeasonNumber() + 3;
         AnimeSeason updateExpectation = new AnimeSeason().toBuilder()
                 .id(seasonOne.getId())
-                .seasonNumber(seasonOne.getSeasonNumber() + 3)
+                .seasonNumber(newSeasonNumber)
                 .totalEpisodesCount(newTotalEpisodesCount)
-                .currentWatchCount(newCurrentWatchCount)
-                .hasBeenWatched(false)
+                .currentWatchCount(seasonOne.getCurrentWatchCount())
+                .hasBeenWatched(seasonOne.getHasBeenWatched())
                 .build();
 
         AnimeSeasonDTO updateDTOResult = animeSeasonService.updateAnimeSeason(
                 updateExpectation.getId(),
                 updateExpectation.getSeasonNumber(),
-                updateExpectation.getTotalEpisodesCount(),
-                updateExpectation.getCurrentWatchCount(),
-                updateExpectation.getHasBeenWatched());
+                updateExpectation.getTotalEpisodesCount());
 
         assertThat(updateDTOResult.getSeasonNumber()).isEqualTo(updateExpectation.getSeasonNumber());
         assertThat(updateDTOResult.getTotalEpisodesCount()).isEqualTo(updateExpectation.getTotalEpisodesCount());
-        assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(updateExpectation.getCurrentWatchCount());
-        assertThat(updateDTOResult.getHasBeenWatched()).isEqualTo(updateExpectation.getHasBeenWatched());
     }
 
     @Test
@@ -183,7 +176,106 @@ class AnimeSeasonServiceIntegrationTest {
         String nonexistentSeasonId = UUID.randomUUID().toString();
         String exceptionMessage = "anime season with ID : " + nonexistentSeasonId + " not found";
         assertThatThrownBy(
-                () -> animeSeasonService.updateAnimeSeason(nonexistentSeasonId, null, null, null, null))
+                () -> animeSeasonService.updateAnimeSeason(nonexistentSeasonId, null, null))
+                .isInstanceOf(AnimeSeasonNotFoundException.class)
+                .hasMessage(exceptionMessage);
+    }
+
+    @Test
+    @Transactional
+    void itShouldMarkAnimeSeasonAsNotWatchedAndResetWatchCount() {
+        AnimeSeasonDTO expected = AnimeSeasonDTO.builder()
+                .id(seasonTwo.getId())
+                .seasonNumber(seasonTwo.getSeasonNumber())
+                .totalEpisodesCount(seasonTwo.getTotalEpisodesCount())
+                .currentWatchCount(0)
+                .hasBeenWatched(false)
+                .build();
+
+        AnimeSeasonDTO updateDTOResult = animeSeasonService.markAnimeSeason(seasonTwo.getId(), false);
+
+        assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(expected.getCurrentWatchCount());
+        assertThat(updateDTOResult.getHasBeenWatched()).isEqualTo(expected.getHasBeenWatched());
+    }
+
+    @Test
+    @Transactional
+    void itShouldMarkAnimeSeasonAsWatchedAndUpdateWatchCount() {
+        AnimeSeasonDTO expected = AnimeSeasonDTO.builder()
+                .id(seasonTwo.getId())
+                .seasonNumber(seasonTwo.getSeasonNumber())
+                .totalEpisodesCount(seasonTwo.getTotalEpisodesCount())
+                .currentWatchCount(seasonTwo.getTotalEpisodesCount())
+                .hasBeenWatched(true)
+                .build();
+
+        AnimeSeasonDTO updateDTOResult = animeSeasonService.markAnimeSeason(seasonTwo.getId(), true);
+
+        assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(expected.getCurrentWatchCount());
+        assertThat(updateDTOResult.getHasBeenWatched()).isEqualTo(expected.getHasBeenWatched());
+    }
+
+    @Test
+    void itShouldThrowWhenAttemptingToMarkNonexistentSeason() {
+        String nonexistentSeasonId = UUID.randomUUID().toString();
+        String exceptionMessage = "anime season with ID : " + nonexistentSeasonId + " not found";
+        assertThatThrownBy(
+                () -> animeSeasonService.markAnimeSeason(nonexistentSeasonId, false))
+                .isInstanceOf(AnimeSeasonNotFoundException.class)
+                .hasMessage(exceptionMessage);
+    }
+
+    @Test
+    @Transactional
+    void itShouldUpdateWatchCountOfAnimeSeason() {
+        Integer newWatchCount = seasonTwo.getCurrentWatchCount() + 37;
+        AnimeSeason expected = new AnimeSeason().toBuilder()
+                .id(seasonTwo.getId())
+                .seasonNumber(seasonTwo.getSeasonNumber())
+                .totalEpisodesCount(seasonTwo.getTotalEpisodesCount())
+                .currentWatchCount(newWatchCount)
+                .hasBeenWatched(seasonTwo.getHasBeenWatched())
+                .build();
+
+        AnimeSeasonDTO updateDTOResult = animeSeasonService.watchEpisodes(seasonTwo.getId(), newWatchCount);
+
+        assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(expected.getCurrentWatchCount());
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotUpdateWatchCountOfAnimeSeasonWhenGreaterThanTotalEpisodes() {
+        Integer invalidWatchCount = seasonTwo.getTotalEpisodesCount() + 420;
+        AnimeSeasonDTO updateDTOResult = animeSeasonService.watchEpisodes(seasonTwo.getId(), invalidWatchCount);
+
+        assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(seasonTwo.getCurrentWatchCount());
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotUpdateWatchCountOfAnimeSeasonWhenProvidingNegativeOne() {
+        Integer negativeWatchCount = -39;
+        AnimeSeasonDTO updateDTOResult = animeSeasonService.watchEpisodes(seasonTwo.getId(), negativeWatchCount);
+
+        assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(seasonTwo.getCurrentWatchCount());
+    }
+
+    @Test
+    @Transactional
+    void itShouldMarkSeasonAsWatchedWhenUpdatingWatchCountToTotalEpisodes() {
+        Integer totalEpisodesCount = seasonTwo.getTotalEpisodesCount();
+        AnimeSeasonDTO updateDTOResult = animeSeasonService.watchEpisodes(seasonTwo.getId(), totalEpisodesCount);
+
+        assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(seasonTwo.getCurrentWatchCount());
+        assertThat(updateDTOResult.getHasBeenWatched()).isTrue();
+    }
+
+    @Test
+    void itShouldThrowWhenAttemptingToUpdateWatchCountOfNonexistentSeason() {
+        String nonexistentSeasonId = UUID.randomUUID().toString();
+        String exceptionMessage = "anime season with ID : " + nonexistentSeasonId + " not found";
+        assertThatThrownBy(
+                () -> animeSeasonService.watchEpisodes(nonexistentSeasonId, 420))
                 .isInstanceOf(AnimeSeasonNotFoundException.class)
                 .hasMessage(exceptionMessage);
     }

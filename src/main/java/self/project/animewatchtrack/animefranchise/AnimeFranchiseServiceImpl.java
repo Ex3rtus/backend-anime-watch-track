@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
  * created 26 oct. 2022.
  * TODO : Perform data validation
  * TODO : Use logger
- * TODO : Look for cleaner way of of marking as watched/nonwatched
  */
 
 @AllArgsConstructor
@@ -54,23 +53,30 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
 
     @Override
     @Transactional
-    public AnimeFranchiseDTO updateFranchise(String franchiseId,
-                                             String newFranchiseTitle,
-                                             Boolean newHasBeenWatched) {
+    public AnimeFranchiseDTO updateFranchise(String franchiseId, String newFranchiseTitle) {
 
         AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
                 .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
-
-        if (newHasBeenWatched!= null) {
-            animeFranchise.getStrategyMap()
-                    .get(newHasBeenWatched)
-                    .markFranchiseAndCascadeDown(animeFranchise);
-        }
 
         if (newFranchiseTitle != null
                 && newFranchiseTitle.length() > 0
                 && !Objects.equals(newFranchiseTitle, animeFranchise.getFranchiseTitle())) {
             animeFranchise.setFranchiseTitle(newFranchiseTitle);
+        }
+
+        return AnimeFranchiseMapper.mapToDTO(animeFranchise);
+    }
+
+    @Override
+    @Transactional
+    public AnimeFranchiseDTO markFranchise(String franchiseId, Boolean newHasBeenWatched) {
+        AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
+                .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
+
+        if (newHasBeenWatched != null) {
+            animeFranchise.getStrategyMap()
+                    .get(newHasBeenWatched)
+                    .markFranchiseAndCascadeDown(animeFranchise);
         }
 
         return AnimeFranchiseMapper.mapToDTO(animeFranchise);

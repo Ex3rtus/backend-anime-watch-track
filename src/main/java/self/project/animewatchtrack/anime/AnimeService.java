@@ -15,9 +15,9 @@ public interface AnimeService {
     String addAnime(String franchiseId, AnimeCommand animeCommand);
 
     AnimeDTO updateAnime(String animeId, String animeTitle,
-                         Integer airYear, List<String> mangaAuthors,
-                         Boolean hasBeenWatched);
+                         Integer airYear, List<String> mangaAuthors);
+
+    AnimeDTO markAnime(String animeId, Boolean newHasBeenWatched);
 
     void deleteAnime(String animeId);
-
 }

@@ -42,16 +42,21 @@ public class AnimeFranchiseController {
 
     @PatchMapping(path = "/{franchiseId}")
     public ResponseEntity<AnimeFranchiseDTO> updateAnimeFranchise(@PathVariable("franchiseId") String franchiseId,
-                                                                  @RequestParam(required = false) String franchiseTitle,
-                                                                  @RequestParam(required = false) Boolean hasBeenWatched) {
-        AnimeFranchiseDTO responseDTO =
-                animeFranchiseService.updateFranchise(franchiseId, franchiseTitle, hasBeenWatched);
+                                                                  @RequestParam("franchiseTitle") String franchiseTitle) {
+        AnimeFranchiseDTO responseDTO = animeFranchiseService.updateFranchise(franchiseId, franchiseTitle);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @PatchMapping(path = "/{franchiseId}" + MARK)
+    public ResponseEntity<AnimeFranchiseDTO> markAnimeFranchise(@PathVariable("franchiseId") String franchiseId,
+                                                                @RequestParam("hasBeenWatched") Boolean newHasBeenWatched) {
+        AnimeFranchiseDTO responseDTO = animeFranchiseService.markFranchise(franchiseId, newHasBeenWatched);
         return ResponseEntity.ok(responseDTO);
     }
 
     @DeleteMapping(path = "/{franchiseId}")
     public ResponseEntity<Object> deleteAnimeFranchise(@PathVariable("franchiseId") String franchiseId) {
         animeFranchiseService.deleteAnimeFranchise(franchiseId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
