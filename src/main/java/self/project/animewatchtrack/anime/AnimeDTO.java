@@ -20,6 +20,6 @@ public class AnimeDTO {
     private String animeTitle;
     private Integer initialAirYear;
     private List<String> originalMangaAuthors;
-    private Boolean hasBeenWatched;
+    private Boolean isWatched;
 }
 

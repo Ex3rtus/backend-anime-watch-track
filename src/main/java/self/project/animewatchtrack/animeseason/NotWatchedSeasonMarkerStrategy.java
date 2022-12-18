@@ -8,7 +8,7 @@ package self.project.animewatchtrack.animeseason;
 public class NotWatchedSeasonMarkerStrategy implements SeasonMarkerStrategy {
     @Override
     public void markSeason(AnimeSeason season) {
-        season.setHasBeenWatched(Boolean.FALSE);
+        season.setIsWatched(Boolean.FALSE);
         season.setCurrentWatchCount(0);
     }
 }

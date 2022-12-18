@@ -13,7 +13,7 @@ public class AnimeSeasonMapper {
                 .seasonNumber(animeSeason.getSeasonNumber())
                 .totalEpisodesCount(animeSeason.getTotalEpisodesCount())
                 .currentWatchCount(animeSeason.getCurrentWatchCount())
-                .hasBeenWatched(animeSeason.getHasBeenWatched())
+                .isWatched(animeSeason.getIsWatched())
                 .build();
     }
 
@@ -22,7 +22,7 @@ public class AnimeSeasonMapper {
                 .seasonNumber(animeSeasonCommand.getSeasonNumber())
                 .totalEpisodesCount(animeSeasonCommand.getTotalEpisodesCount())
                 .currentWatchCount(animeSeasonCommand.getCurrentWatchCount())
-                .hasBeenWatched(animeSeasonCommand.getHasBeenWatched())
+                .isWatched(animeSeasonCommand.getIsWatched())
                 .build();
     }
 }

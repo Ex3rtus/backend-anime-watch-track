@@ -12,7 +12,7 @@ public class AnimeMapper {
                 .animeTitle(animeCommand.getAnimeTitle())
                 .initialAirYear(animeCommand.getInitialAirYear())
                 .originalMangaAuthors(animeCommand.getOriginalMangaAuthors())
-                .hasBeenWatched(animeCommand.getHasBeenWatched())
+                .isWatched(animeCommand.getIsWatched())
                 .build();
     }
     public static AnimeDTO mapToDTO(Anime anime) {
@@ -22,7 +22,7 @@ public class AnimeMapper {
                 .animeTitle(anime.getAnimeTitle())
                 .initialAirYear(anime.getInitialAirYear())
                 .originalMangaAuthors(anime.getOriginalMangaAuthors())
-                .hasBeenWatched(anime.getHasBeenWatched())
+                .isWatched(anime.getIsWatched())
                 .build();
     }
 }

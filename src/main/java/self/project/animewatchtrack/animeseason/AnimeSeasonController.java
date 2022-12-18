@@ -4,12 +4,19 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import self.project.animewatchtrack.anime.AnimeDTO;
+import self.project.animewatchtrack.validation.constraints.NullOrPositive;
+import self.project.animewatchtrack.validation.constraints.UUIDURI;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static self.project.animewatchtrack.constants.ResourcePaths.*;
+import static self.project.animewatchtrack.constants.SeasonValidationMessages.*;
 
 /**
  * @author Youssef Kaïdi.
@@ -18,6 +25,7 @@ import static self.project.animewatchtrack.constants.ResourcePaths.*;
 
 @AllArgsConstructor
 @CrossOrigin(origins = {"http://localhost:3000"})
+@Validated
 @RestController
 @RequestMapping(path = API + V1 + ANIME_FRANCHISES + "/{franchiseId}" + ANIMES + "/{animeId}" + ANIME_SEASONS)
 public class AnimeSeasonController {
@@ -25,7 +33,7 @@ public class AnimeSeasonController {
     private final AnimeSeasonService animeSeasonService;
 
     @GetMapping(path = "{seasonId}")
-    public ResponseEntity<AnimeSeasonDTO> getSeasonById(@PathVariable("seasonId") String seasonId) {
+    public ResponseEntity<AnimeSeasonDTO> getSeasonById(@UUIDURI @PathVariable("seasonId") String seasonId) {
         return ResponseEntity.ok(animeSeasonService.getById(seasonId));
     }
 
@@ -35,36 +43,42 @@ public class AnimeSeasonController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> addNewAnimeSeason(@PathVariable("animeId") String animeId,
-                                                    @RequestBody AnimeSeasonCommand animeSeasonCommand) {
+    public ResponseEntity<String> addNewAnimeSeason(@UUIDURI @PathVariable("animeId") String animeId,
+                                                    @Valid @RequestBody AnimeSeasonCommand animeSeasonCommand) {
         String seasonId = animeSeasonService.addAnimeSeason(animeId, animeSeasonCommand);
         return ResponseEntity.status(HttpStatus.CREATED).body(seasonId);
     }
 
     @PatchMapping(path = "/{seasonId}")
-    public ResponseEntity<AnimeSeasonDTO> updateAnimeSeason(@PathVariable("seasonId") String seasonId,
-                                                            @RequestParam(required = false, name = "seasonNumber") Integer seasonNumber,
-                                                            @RequestParam(required = false, name = "totalEpisodesCount") Integer totalEpisodesCount) {
+    public ResponseEntity<AnimeSeasonDTO> updateAnimeSeason(@UUIDURI @PathVariable("seasonId") String seasonId,
+                                                            @NullOrPositive(message = numberMessage)
+                                                            @RequestParam(required = false, name = "seasonNumber")
+                                                                Integer seasonNumber,
+                                                            @NullOrPositive(message = totalEpisodesMessage)
+                                                            @RequestParam(required = false, name = "totalEpisodesCount")
+                                                                Integer totalEpisodesCount) {
         AnimeSeasonDTO seasonDTO = animeSeasonService.updateAnimeSeason(seasonId, seasonNumber, totalEpisodesCount);
         return ResponseEntity.ok(seasonDTO);
     }
 
     @PatchMapping(path = "/{seasonId}" + MARK)
-    public ResponseEntity<AnimeSeasonDTO> markAnimeSeason(@PathVariable("seasonId") String seasonId,
-                                                          @RequestParam("hasBeenWatched") Boolean newHasBeenWatched) {
-        AnimeSeasonDTO seasonDTO = animeSeasonService.markAnimeSeason(seasonId, newHasBeenWatched);
+    public ResponseEntity<AnimeSeasonDTO> markAnimeSeason(@UUIDURI @PathVariable("seasonId") String seasonId,
+                                                          @NotNull(message = isWatchedMessage)
+                                                          @RequestParam("isWatched") Boolean isWatched) {
+        AnimeSeasonDTO seasonDTO = animeSeasonService.markAnimeSeason(seasonId, isWatched);
         return ResponseEntity.ok(seasonDTO);
     }
 
     @PatchMapping(path = "/{seasonId}" + WATCH)
-    public ResponseEntity<AnimeSeasonDTO> watchEpisodes(@PathVariable("seasonId") String seasonId,
+    public ResponseEntity<AnimeSeasonDTO> watchEpisodes(@UUIDURI @PathVariable("seasonId") String seasonId,
+                                                        @PositiveOrZero(message = watchCountMessage)
                                                         @RequestParam("watchCount") Integer newWatchCount) {
         AnimeSeasonDTO seasonDTO = animeSeasonService.watchEpisodes(seasonId, newWatchCount);
         return ResponseEntity.ok(seasonDTO);
     }
 
     @DeleteMapping(path = "/{seasonId}")
-    public ResponseEntity<Object> deleteAnimeSeason(@PathVariable("seasonId") String seasonId) {
+    public ResponseEntity<Object> deleteAnimeSeason(@UUIDURI @PathVariable("seasonId") String seasonId) {
         animeSeasonService.deleteAnimeSeason(seasonId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

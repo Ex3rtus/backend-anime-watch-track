@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  */
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ResourcePaths {
+public final class ResourcePaths {
     public static final String V1 = "/v1";
     public static final String API = "/api";
     public static final String ANIME_FRANCHISES = "/animefranchises";

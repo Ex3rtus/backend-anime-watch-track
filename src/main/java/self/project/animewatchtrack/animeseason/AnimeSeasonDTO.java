@@ -19,6 +19,6 @@ public class AnimeSeasonDTO {
     private Integer seasonNumber;
     private Integer totalEpisodesCount;
     private Integer currentWatchCount;
-    private Boolean hasBeenWatched;
+    private Boolean isWatched;
 
 }

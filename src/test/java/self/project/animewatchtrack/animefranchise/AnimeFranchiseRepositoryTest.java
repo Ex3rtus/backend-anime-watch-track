@@ -31,7 +31,7 @@ class AnimeFranchiseRepositoryTest {
         AnimeFranchise animeFranchise = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle(thisFranchiseExists)
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
         repositoryUnderTest.save(animeFranchise);
 

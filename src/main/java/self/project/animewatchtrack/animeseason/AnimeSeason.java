@@ -18,7 +18,12 @@ import java.util.Map;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @Entity
-@Table(name = "anime_seasons")
+@Table(
+        name = "anime_seasons",
+        uniqueConstraints = @UniqueConstraint(
+                name = "UniqueSeasonNumberAndAnimeId",
+                columnNames = {"season_number", "anime_id"}
+        ))
 public class AnimeSeason {
 
     @Id
@@ -41,8 +46,8 @@ public class AnimeSeason {
     @Column(name = "current_watch_count")
     private Integer currentWatchCount;
 
-    @Column(name = "has_been_watched")
-    private Boolean hasBeenWatched;
+    @Column(name = "is_watched")
+    private Boolean isWatched;
 
     @Transient
     @Setter(AccessLevel.NONE)

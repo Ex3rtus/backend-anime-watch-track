@@ -46,7 +46,7 @@ class AnimeServiceTest {
         parentFranchise = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Parent Franchise Title")
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         anime1 = new Anime().toBuilder()
@@ -54,7 +54,7 @@ class AnimeServiceTest {
                 .animeTitle("Anime 1 Title")
                 .initialAirYear(1970)
                 .originalMangaAuthors(List.of("Manga 1 Author 1"))
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         anime2 = new Anime().toBuilder()
@@ -62,7 +62,7 @@ class AnimeServiceTest {
                 .animeTitle("Anime 2 Title")
                 .initialAirYear(1997)
                 .originalMangaAuthors(List.of("Manga 2 Author 1 ", "Manga 2 Author 2"))
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         parentFranchise.addAnime(anime1);
@@ -74,7 +74,7 @@ class AnimeServiceTest {
                 .animeTitle("Anime To Create Title")
                 .originalMangaAuthors(List.of("Another Manga Author 1", "Another Manga Author 2"))
                 .initialAirYear(1999)
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
     }
 
@@ -153,7 +153,7 @@ class AnimeServiceTest {
                 .animeTitle(existingAnimeTitle)
                 .initialAirYear(anime1.getInitialAirYear())
                 .originalMangaAuthors(anime1.getOriginalMangaAuthors())
-                .hasBeenWatched(anime1.getHasBeenWatched())
+                .isWatched(anime1.getIsWatched())
                 .build();
         String exceptionMessage = "anime with title : " + existingAnimeTitle + " already exists";
 
@@ -180,7 +180,7 @@ class AnimeServiceTest {
                 .animeTitle(newTitle)
                 .initialAirYear(newInitialAirYear)
                 .originalMangaAuthors(newListOfOriginalMangaAuthors)
-                .hasBeenWatched(anime1DTO.getHasBeenWatched())
+                .isWatched(anime1DTO.getIsWatched())
                 .build();
 
         when(animeRepository.findById(existingId))
@@ -215,7 +215,7 @@ class AnimeServiceTest {
                 .animeTitle(anime1DTO.getAnimeTitle())
                 .initialAirYear(anime1DTO.getInitialAirYear())
                 .originalMangaAuthors(anime1DTO.getOriginalMangaAuthors())
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         when(animeRepository.findById(animeId))
@@ -236,7 +236,7 @@ class AnimeServiceTest {
                 .animeTitle(anime2DTO.getAnimeTitle())
                 .initialAirYear(anime2DTO.getInitialAirYear())
                 .originalMangaAuthors(anime2DTO.getOriginalMangaAuthors())
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         when(animeRepository.findById(animeId))

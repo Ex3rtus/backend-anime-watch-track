@@ -34,27 +34,27 @@ public class AnimeEntitiesHelperMethodsIT {
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Franchise 1")
                 .animes(new ArrayList<>())
-                .hasBeenWatched(Boolean.TRUE)
+                .isWatched(Boolean.TRUE)
                 .build();
 
         unwatchedFranchise = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Franchise 2")
                 .animes(new ArrayList<>())
-                .hasBeenWatched(Boolean.FALSE)
+                .isWatched(Boolean.FALSE)
                 .build();
 
         watchedAnime = new Anime().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .animeTitle("Anime 1")
-                .hasBeenWatched(Boolean.TRUE)
+                .isWatched(Boolean.TRUE)
                 .seasons(new ArrayList<>())
                 .build();
 
         unwatchedAnime = new Anime().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .animeTitle("Anime 2")
-                .hasBeenWatched(Boolean.FALSE)
+                .isWatched(Boolean.FALSE)
                 .seasons(new ArrayList<>())
                 .build();
 
@@ -63,7 +63,7 @@ public class AnimeEntitiesHelperMethodsIT {
                 .seasonNumber(1)
                 .totalEpisodesCount(99)
                 .currentWatchCount(99)
-                .hasBeenWatched(Boolean.TRUE)
+                .isWatched(Boolean.TRUE)
                 .build();
 
         watchedSeason2 = new AnimeSeason().toBuilder()
@@ -71,7 +71,7 @@ public class AnimeEntitiesHelperMethodsIT {
                 .seasonNumber(2)
                 .totalEpisodesCount(89)
                 .currentWatchCount(89)
-                .hasBeenWatched(Boolean.TRUE)
+                .isWatched(Boolean.TRUE)
                 .build();
 
         unwatchedSeason1 = new AnimeSeason().toBuilder()
@@ -79,7 +79,7 @@ public class AnimeEntitiesHelperMethodsIT {
                 .seasonNumber(1)
                 .totalEpisodesCount(98)
                 .currentWatchCount(0)
-                .hasBeenWatched(Boolean.FALSE)
+                .isWatched(Boolean.FALSE)
                 .build();
 
         unwatchedSeason2 = new AnimeSeason().toBuilder()
@@ -87,7 +87,7 @@ public class AnimeEntitiesHelperMethodsIT {
                 .seasonNumber(2)
                 .totalEpisodesCount(88)
                 .currentWatchCount(0)
-                .hasBeenWatched(Boolean.FALSE)
+                .isWatched(Boolean.FALSE)
                 .build();
     }
 
@@ -145,10 +145,10 @@ public class AnimeEntitiesHelperMethodsIT {
                 .get(Boolean.TRUE)
                 .markFranchiseAndCascadeDown(unwatchedFranchise);
 
-        assertThat(unwatchedFranchise.getHasBeenWatched()).isTrue();
-        assertThat(unwatchedAnime.getHasBeenWatched()).isTrue();
-        assertThat(unwatchedSeason1.getHasBeenWatched()).isTrue();
-        assertThat(unwatchedSeason2.getHasBeenWatched()).isTrue();
+        assertThat(unwatchedFranchise.getIsWatched()).isTrue();
+        assertThat(unwatchedAnime.getIsWatched()).isTrue();
+        assertThat(unwatchedSeason1.getIsWatched()).isTrue();
+        assertThat(unwatchedSeason2.getIsWatched()).isTrue();
         assertThat(unwatchedSeason1.getCurrentWatchCount()).isEqualTo(unwatchedSeason1.getTotalEpisodesCount());
         assertThat(unwatchedSeason2.getCurrentWatchCount()).isEqualTo(unwatchedSeason2.getTotalEpisodesCount());
     }
@@ -163,10 +163,10 @@ public class AnimeEntitiesHelperMethodsIT {
                 .get(Boolean.FALSE)
                 .markFranchiseAndCascadeDown(watchedFranchise);
 
-        assertThat(watchedFranchise.getHasBeenWatched()).isFalse();
-        assertThat(watchedAnime.getHasBeenWatched()).isFalse();
-        assertThat(watchedSeason1.getHasBeenWatched()).isFalse();
-        assertThat(watchedSeason2.getHasBeenWatched()).isFalse();
+        assertThat(watchedFranchise.getIsWatched()).isFalse();
+        assertThat(watchedAnime.getIsWatched()).isFalse();
+        assertThat(watchedSeason1.getIsWatched()).isFalse();
+        assertThat(watchedSeason2.getIsWatched()).isFalse();
         assertThat(watchedSeason1.getCurrentWatchCount()).isEqualTo(0);
         assertThat(watchedSeason2.getCurrentWatchCount()).isEqualTo(0);
     }

@@ -9,19 +9,27 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import javax.validation.ConstraintViolationException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static self.project.animewatchtrack.constants.FranchiseValidationMessages.isWatchedMessage;
+import static self.project.animewatchtrack.constants.FranchiseValidationMessages.titleMessage;
 import static self.project.animewatchtrack.constants.ResourcePaths.*;
 
 /**
@@ -41,6 +49,7 @@ class AnimeFranchiseControllerTest {
     private static AnimeFranchiseDTO franchiseDTO1;
     private static AnimeFranchiseDTO franchiseDTO2;
     private static AnimeFranchiseCommand franchiseCommand;
+    private static AnimeFranchiseCommand invalidCommand;
     private final static String BASE_URI = API + V1 + ANIME_FRANCHISES;
 
     @BeforeAll
@@ -48,16 +57,17 @@ class AnimeFranchiseControllerTest {
         franchiseDTO1 = AnimeFranchiseDTO.builder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Franchise 1")
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         franchiseDTO2 = AnimeFranchiseDTO.builder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Franchise 2")
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         franchiseCommand = new AnimeFranchiseCommand("Should Add", false);
+        invalidCommand = new AnimeFranchiseCommand(" ", null);
     }
 
     @Test
@@ -72,10 +82,10 @@ class AnimeFranchiseControllerTest {
                 .andExpect(jsonPath("$", hasSize(equalTo(2))))
                 .andExpect(jsonPath("$[0].id", equalTo(franchiseDTO1.getId())))
                 .andExpect(jsonPath("$[0].franchiseTitle", equalTo(franchiseDTO1.getFranchiseTitle())))
-                .andExpect(jsonPath("$[0].hasBeenWatched", equalTo(franchiseDTO1.getHasBeenWatched())))
+                .andExpect(jsonPath("$[0].isWatched", equalTo(franchiseDTO1.getIsWatched())))
                 .andExpect(jsonPath("$[1].id", equalTo(franchiseDTO2.getId())))
                 .andExpect(jsonPath("$[1].franchiseTitle", equalTo(franchiseDTO2.getFranchiseTitle())))
-                .andExpect(jsonPath("$[1].hasBeenWatched", equalTo(franchiseDTO2.getHasBeenWatched())));
+                .andExpect(jsonPath("$[1].isWatched", equalTo(franchiseDTO2.getIsWatched())));
 
         verify(mockedService).getAll();
     }
@@ -114,14 +124,26 @@ class AnimeFranchiseControllerTest {
     }
 
     @Test
+    void itShouldFailToCreateFranchiseGivenInvalidateFranchiseCommand() throws Exception {
+        String requestPayload = jsonMapper.writeValueAsString(invalidCommand);
+
+        mockMvc.perform(post(BASE_URI)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestPayload))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
+                .andExpect(result -> result.getResolvedException().getMessage().equals(titleMessage));
+    }
+    @Test
     void itShouldUpdateExistingAnimeFranchise() throws Exception {
         String franchiseId = franchiseDTO1.getId();
         String updatedFranchiseTitle = "New Franchise 1 Title";
-        Boolean hasBeenWatched = true;
         AnimeFranchiseDTO updatedFranchiseDTO = AnimeFranchiseDTO.builder()
                 .id(franchiseId)
                 .franchiseTitle(updatedFranchiseTitle)
-                .hasBeenWatched(hasBeenWatched)
+                .isWatched(franchiseDTO1.getIsWatched())
                 .build();
 
         String responsePayload = jsonMapper.writeValueAsString(updatedFranchiseDTO);
@@ -130,8 +152,7 @@ class AnimeFranchiseControllerTest {
                 .thenReturn(updatedFranchiseDTO);
 
         mockMvc.perform(patch(BASE_URI + "/{franchiseId}", franchiseId)
-                .param("franchiseTitle", updatedFranchiseTitle)
-                .param("hasBeenWatched", "true"))
+                .param("franchiseTitle", updatedFranchiseTitle))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(responsePayload));
@@ -139,13 +160,25 @@ class AnimeFranchiseControllerTest {
     }
 
     @Test
-    void itShouldMarkExistingAnimeAsNotWatched() throws Exception {
+    void itShouldFailToUpdateFranchiseTitle() {
+        String franchiseId = franchiseDTO1.getId();
+        String invalidTitle = "    ";
+
+        assertThatThrownBy(() -> mockMvc.perform(patch(BASE_URI + "/{franchiseId}", franchiseId)
+                        .param("franchiseTitle", invalidTitle))
+                .andDo(print())
+                .andExpect(status().isBadRequest()))
+                .hasMessageContaining(titleMessage);
+    }
+
+    @Test
+    void itShouldMarkExistingAnimeFranchiseAsNotWatched() throws Exception {
         String franchiseId = franchiseDTO1.getId();
 
         AnimeFranchiseDTO expectedDTO = AnimeFranchiseDTO.builder()
                 .id(franchiseId)
                 .franchiseTitle(franchiseDTO1.getFranchiseTitle())
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         String expectedPayload = jsonMapper.writeValueAsString(expectedDTO);
@@ -153,8 +186,8 @@ class AnimeFranchiseControllerTest {
         when(mockedService.markFranchise(franchiseId, true))
                 .thenReturn(expectedDTO);
 
-        mockMvc.perform(patch(BASE_URI + "/{animeId}" + MARK, franchiseId)
-                        .param("hasBeenWatched", expectedDTO.getHasBeenWatched().toString()))
+        mockMvc.perform(patch(BASE_URI + "/{franchiseId}" + MARK, franchiseId)
+                        .param("isWatched", expectedDTO.getIsWatched().toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedPayload));
 
@@ -162,13 +195,13 @@ class AnimeFranchiseControllerTest {
     }
 
     @Test
-    void itShouldMarkExistingAnimeAsWatched() throws Exception {
+    void itShouldMarkExistingAnimeFranchiseAsWatched() throws Exception {
         String franchiseId = franchiseDTO2.getId();
 
         AnimeFranchiseDTO expectedDTO = AnimeFranchiseDTO.builder()
                 .id(franchiseId)
                 .franchiseTitle(franchiseDTO2.getFranchiseTitle())
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         String expectedPayload = jsonMapper.writeValueAsString(expectedDTO);
@@ -176,8 +209,8 @@ class AnimeFranchiseControllerTest {
         when(mockedService.markFranchise(franchiseId, false))
                 .thenReturn(expectedDTO);
 
-        mockMvc.perform(patch(BASE_URI + "/{animeId}" + MARK, franchiseId)
-                        .param("hasBeenWatched", expectedDTO.getHasBeenWatched().toString()))
+        mockMvc.perform(patch(BASE_URI + "/{franchiseId}" + MARK, franchiseId)
+                        .param("isWatched", expectedDTO.getIsWatched().toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedPayload));
 

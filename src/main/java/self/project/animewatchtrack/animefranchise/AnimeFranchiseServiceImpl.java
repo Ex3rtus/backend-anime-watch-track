@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 /**
  * @author Youssef Kaïdi.
  * created 26 oct. 2022.
- * TODO : Perform data validation
  * TODO : Use logger
  */
 
@@ -27,14 +26,15 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
     @Override
     public AnimeFranchiseDTO getById(String franchiseId) {
         AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
-                        .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
+                .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
         return AnimeFranchiseMapper.mapToDTO(animeFranchise);
     }
 
     @Override
     public List<AnimeFranchiseDTO> getAll() {
         return franchiseRepository.findAll()
-                .stream().map(AnimeFranchiseMapper::mapToDTO)
+                .stream()
+                .map(AnimeFranchiseMapper::mapToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -58,9 +58,7 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
         AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
                 .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
 
-        if (newFranchiseTitle != null
-                && newFranchiseTitle.length() > 0
-                && !Objects.equals(newFranchiseTitle, animeFranchise.getFranchiseTitle())) {
+        if (!Objects.equals(newFranchiseTitle, animeFranchise.getFranchiseTitle())) {
             animeFranchise.setFranchiseTitle(newFranchiseTitle);
         }
 
@@ -69,15 +67,13 @@ public class AnimeFranchiseServiceImpl implements AnimeFranchiseService {
 
     @Override
     @Transactional
-    public AnimeFranchiseDTO markFranchise(String franchiseId, Boolean newHasBeenWatched) {
+    public AnimeFranchiseDTO markFranchise(String franchiseId, Boolean isWatched) {
         AnimeFranchise animeFranchise = franchiseRepository.findById(franchiseId)
                 .orElseThrow(() -> new AnimeFranchiseNotFoundException(franchiseId));
 
-        if (newHasBeenWatched != null) {
-            animeFranchise.getStrategyMap()
-                    .get(newHasBeenWatched)
-                    .markFranchiseAndCascadeDown(animeFranchise);
-        }
+        animeFranchise.getStrategyMap()
+                .get(isWatched)
+                .markFranchiseAndCascadeDown(animeFranchise);
 
         return AnimeFranchiseMapper.mapToDTO(animeFranchise);
     }

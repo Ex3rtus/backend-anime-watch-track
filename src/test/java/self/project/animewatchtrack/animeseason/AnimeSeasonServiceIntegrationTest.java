@@ -46,21 +46,21 @@ class AnimeSeasonServiceIntegrationTest {
                 .animeTitle("Anime Title")
                 .initialAirYear(1970)
                 .originalMangaAuthors(List.of("Manga Author 1"))
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         seasonOne = new AnimeSeason().toBuilder()
                 .seasonNumber(1)
                 .totalEpisodesCount(158)
                 .currentWatchCount(158)
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         seasonTwo = new AnimeSeason().toBuilder()
                 .seasonNumber(2)
                 .totalEpisodesCount(108)
                 .currentWatchCount(5)
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         parentAnime.addSeason(seasonOne);
@@ -74,7 +74,7 @@ class AnimeSeasonServiceIntegrationTest {
                 .seasonNumber(3)
                 .totalEpisodesCount(113)
                 .currentWatchCount(0)
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
     }
 
@@ -88,7 +88,7 @@ class AnimeSeasonServiceIntegrationTest {
         assertThat(resultDTO.getSeasonNumber()).isEqualTo(seasonOne.getSeasonNumber());
         assertThat(resultDTO.getTotalEpisodesCount()).isEqualTo(seasonOne.getTotalEpisodesCount());
         assertThat(resultDTO.getCurrentWatchCount()).isEqualTo(seasonOne.getCurrentWatchCount());
-        assertThat(resultDTO.getHasBeenWatched()).isEqualTo(seasonOne.getHasBeenWatched());
+        assertThat(resultDTO.getIsWatched()).isEqualTo(seasonOne.getIsWatched());
 
     }
 
@@ -128,7 +128,7 @@ class AnimeSeasonServiceIntegrationTest {
         assertThat(persisted.getSeasonNumber()).isEqualTo(expectedPersisted.getSeasonNumber());
         assertThat(persisted.getTotalEpisodesCount()).isEqualTo(expectedPersisted.getTotalEpisodesCount());
         assertThat(persisted.getCurrentWatchCount()).isEqualTo(expectedPersisted.getCurrentWatchCount());
-        assertThat(persisted.getHasBeenWatched()).isEqualTo(expectedPersisted.getHasBeenWatched());
+        assertThat(persisted.getIsWatched()).isEqualTo(expectedPersisted.getIsWatched());
         assertThat(persisted.getAnime()).isEqualTo(parentAnime);
     }
 
@@ -141,7 +141,7 @@ class AnimeSeasonServiceIntegrationTest {
                 .seasonNumber(1)
                 .totalEpisodesCount(158)
                 .currentWatchCount(158)
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         assertThatThrownBy(() -> animeSeasonService.addAnimeSeason(parentAnime.getId(), existingSeasonCommand))
@@ -159,7 +159,7 @@ class AnimeSeasonServiceIntegrationTest {
                 .seasonNumber(newSeasonNumber)
                 .totalEpisodesCount(newTotalEpisodesCount)
                 .currentWatchCount(seasonOne.getCurrentWatchCount())
-                .hasBeenWatched(seasonOne.getHasBeenWatched())
+                .isWatched(seasonOne.getIsWatched())
                 .build();
 
         AnimeSeasonDTO updateDTOResult = animeSeasonService.updateAnimeSeason(
@@ -189,13 +189,13 @@ class AnimeSeasonServiceIntegrationTest {
                 .seasonNumber(seasonTwo.getSeasonNumber())
                 .totalEpisodesCount(seasonTwo.getTotalEpisodesCount())
                 .currentWatchCount(0)
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         AnimeSeasonDTO updateDTOResult = animeSeasonService.markAnimeSeason(seasonTwo.getId(), false);
 
         assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(expected.getCurrentWatchCount());
-        assertThat(updateDTOResult.getHasBeenWatched()).isEqualTo(expected.getHasBeenWatched());
+        assertThat(updateDTOResult.getIsWatched()).isEqualTo(expected.getIsWatched());
     }
 
     @Test
@@ -206,13 +206,13 @@ class AnimeSeasonServiceIntegrationTest {
                 .seasonNumber(seasonTwo.getSeasonNumber())
                 .totalEpisodesCount(seasonTwo.getTotalEpisodesCount())
                 .currentWatchCount(seasonTwo.getTotalEpisodesCount())
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         AnimeSeasonDTO updateDTOResult = animeSeasonService.markAnimeSeason(seasonTwo.getId(), true);
 
         assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(expected.getCurrentWatchCount());
-        assertThat(updateDTOResult.getHasBeenWatched()).isEqualTo(expected.getHasBeenWatched());
+        assertThat(updateDTOResult.getIsWatched()).isEqualTo(expected.getIsWatched());
     }
 
     @Test
@@ -234,7 +234,7 @@ class AnimeSeasonServiceIntegrationTest {
                 .seasonNumber(seasonTwo.getSeasonNumber())
                 .totalEpisodesCount(seasonTwo.getTotalEpisodesCount())
                 .currentWatchCount(newWatchCount)
-                .hasBeenWatched(seasonTwo.getHasBeenWatched())
+                .isWatched(seasonTwo.getIsWatched())
                 .build();
 
         AnimeSeasonDTO updateDTOResult = animeSeasonService.watchEpisodes(seasonTwo.getId(), newWatchCount);
@@ -253,21 +253,12 @@ class AnimeSeasonServiceIntegrationTest {
 
     @Test
     @Transactional
-    void itShouldNotUpdateWatchCountOfAnimeSeasonWhenProvidingNegativeOne() {
-        Integer negativeWatchCount = -39;
-        AnimeSeasonDTO updateDTOResult = animeSeasonService.watchEpisodes(seasonTwo.getId(), negativeWatchCount);
-
-        assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(seasonTwo.getCurrentWatchCount());
-    }
-
-    @Test
-    @Transactional
     void itShouldMarkSeasonAsWatchedWhenUpdatingWatchCountToTotalEpisodes() {
         Integer totalEpisodesCount = seasonTwo.getTotalEpisodesCount();
         AnimeSeasonDTO updateDTOResult = animeSeasonService.watchEpisodes(seasonTwo.getId(), totalEpisodesCount);
 
         assertThat(updateDTOResult.getCurrentWatchCount()).isEqualTo(seasonTwo.getCurrentWatchCount());
-        assertThat(updateDTOResult.getHasBeenWatched()).isTrue();
+        assertThat(updateDTOResult.getIsWatched()).isTrue();
     }
 
     @Test

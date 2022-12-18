@@ -19,7 +19,10 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-@Table(name = "anime_franchises")
+@Table(
+        name = "anime_franchises",
+        uniqueConstraints = @UniqueConstraint(name = "UniqueFranchiseTitle", columnNames = "franchise_title")
+        )
 public class AnimeFranchise {
 
     @Id
@@ -31,8 +34,8 @@ public class AnimeFranchise {
     @Column(name = "franchise_title")
     private String franchiseTitle;
 
-    @Column(name = "has_been_watched")
-    private Boolean hasBeenWatched;
+    @Column(name = "is_watched")
+    private Boolean isWatched;
 
     @OneToMany(
             mappedBy = "animeFranchise",

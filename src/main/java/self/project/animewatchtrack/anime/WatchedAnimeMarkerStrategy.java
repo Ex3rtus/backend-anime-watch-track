@@ -8,7 +8,7 @@ package self.project.animewatchtrack.anime;
 public class WatchedAnimeMarkerStrategy implements AnimeMarkerStrategy {
     @Override
     public void markAnimeAndCascadeDown(Anime anime) {
-        anime.setHasBeenWatched(Boolean.TRUE);
+        anime.setIsWatched(Boolean.TRUE);
         anime.getSeasons()
                 .forEach(season -> season.getStrategyMap()
                         .get(Boolean.TRUE)

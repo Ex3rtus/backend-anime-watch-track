@@ -1,9 +1,16 @@
 package self.project.animewatchtrack.anime;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
+import static self.project.animewatchtrack.constants.AnimeValidationMessages.*;
 
 /**
  * @author Youssef Kaïdi.
@@ -15,9 +22,16 @@ import java.util.List;
 @Getter
 public class AnimeCommand {
 
+    @NotBlank(message = titleMessage)
     private String animeTitle;
+
+    @Positive(message = yearMessage)
     private Integer initialAirYear;
-    private List<String> originalMangaAuthors;
-    private Boolean hasBeenWatched;
+
+    @NotEmpty(message = authorsMessage)
+    private List<@NotBlank(message = authorMessage) String> originalMangaAuthors;
+
+    @NotNull(message = isWatchedMessage)
+    private Boolean isWatched;
 
 }

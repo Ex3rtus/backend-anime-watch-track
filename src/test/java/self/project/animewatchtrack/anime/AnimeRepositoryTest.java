@@ -37,7 +37,7 @@ class AnimeRepositoryTest {
                 .initialAirYear(1970)
                 .originalMangaAuthors(List.of("Manga 1 Author 1"))
                 .seasons(new ArrayList<>())
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         repositoryUnderTest.save(anime);

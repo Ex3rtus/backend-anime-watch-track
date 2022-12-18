@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import self.project.animewatchtrack.animefranchise.AnimeFranchise;
 
 import java.nio.charset.StandardCharsets;
@@ -16,8 +17,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -25,6 +28,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import static self.project.animewatchtrack.constants.AnimeValidationMessages.*;
 import static self.project.animewatchtrack.constants.ResourcePaths.*;
 
 /**
@@ -47,6 +52,8 @@ class AnimeControllerTest {
     private static Anime anime2;
     private static AnimeDTO anime2DTO;
     private static AnimeCommand animeCommand;
+
+    private static AnimeCommand invalidCommand;
     private final static String BASE_URI = API + V1 + ANIME_FRANCHISES + "/{franchiseId}" + ANIMES;
 
     @BeforeAll
@@ -54,7 +61,7 @@ class AnimeControllerTest {
         parentFranchise = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Parent Franchise Title")
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         anime1 = new Anime().toBuilder()
@@ -62,7 +69,7 @@ class AnimeControllerTest {
                 .animeTitle("Anime 1 Title")
                 .initialAirYear(1970)
                 .originalMangaAuthors(List.of("Manga 1 Author 1"))
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         anime2 = new Anime().toBuilder()
@@ -70,7 +77,7 @@ class AnimeControllerTest {
                 .animeTitle("Anime 2 Title")
                 .initialAirYear(1997)
                 .originalMangaAuthors(List.of("Manga 2 Author 1 ", "Manga 2 Author 2"))
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         parentFranchise.addAnime(anime1);
@@ -83,7 +90,14 @@ class AnimeControllerTest {
                 .animeTitle("Anime To Create")
                 .originalMangaAuthors(List.of("Another Manga Author 1", "Another Manga Author 2"))
                 .initialAirYear(1999)
-                .hasBeenWatched(true)
+                .isWatched(true)
+                .build();
+
+        invalidCommand = AnimeCommand.builder()
+                .animeTitle("   ")
+                .originalMangaAuthors(List.of())
+                .initialAirYear(-540)
+                .isWatched(null)
                 .build();
     }
 
@@ -104,13 +118,13 @@ class AnimeControllerTest {
                 .andExpect(jsonPath("$[0].animeTitle", equalTo(anime1DTO.getAnimeTitle())))
                 .andExpect(jsonPath("$[0].initialAirYear", equalTo(anime1DTO.getInitialAirYear())))
                 .andExpect(jsonPath("$[0].originalMangaAuthors", equalTo(anime1DTO.getOriginalMangaAuthors())))
-                .andExpect(jsonPath("$[0].hasBeenWatched", equalTo(anime1DTO.getHasBeenWatched())))
+                .andExpect(jsonPath("$[0].isWatched", equalTo(anime1DTO.getIsWatched())))
                 .andExpect(jsonPath("$[1].id", equalTo(anime2DTO.getId())))
                 .andExpect(jsonPath("$[1].parentFranchiseTitle", equalTo(parentFranchiseTitle)))
                 .andExpect(jsonPath("$[1].animeTitle", equalTo(anime2DTO.getAnimeTitle())))
                 .andExpect(jsonPath("$[1].initialAirYear", equalTo(anime2DTO.getInitialAirYear())))
                 .andExpect(jsonPath("$[1].originalMangaAuthors", equalTo(anime2DTO.getOriginalMangaAuthors())))
-                .andExpect(jsonPath("$[1].hasBeenWatched", equalTo(anime2DTO.getHasBeenWatched())));
+                .andExpect(jsonPath("$[1].isWatched", equalTo(anime2DTO.getIsWatched())));
         verify(mockedService).getAll();
     }
 
@@ -146,6 +160,19 @@ class AnimeControllerTest {
     }
 
     @Test
+    void itShouldFailToCreateAnimeGivenInvalidCommand() throws Exception {
+        String franchiseId = parentFranchise.getId();
+        String requestPayload = jsonMapper.writeValueAsString(invalidCommand);
+
+        mockMvc.perform(post(BASE_URI, franchiseId)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestPayload))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException));
+    }
+
+    @Test
     void itShouldUpdateAnime() throws Exception {
         String franchiseId = parentFranchise.getId();
         AnimeDTO expectedDTO = AnimeDTO.builder()
@@ -154,12 +181,10 @@ class AnimeControllerTest {
                 .animeTitle("Anime 1 Updated Title")
                 .initialAirYear(anime1DTO.getInitialAirYear() + 4)
                 .originalMangaAuthors(anime1DTO.getOriginalMangaAuthors())
-                .hasBeenWatched(!anime1DTO.getHasBeenWatched())
+                .isWatched(!anime1DTO.getIsWatched())
                 .build();
 
-        String authorsParam = expectedDTO.getOriginalMangaAuthors()
-                .stream()
-                .reduce("", String::concat);
+        String authorsParam = String.join(",", expectedDTO.getOriginalMangaAuthors());
 
         when(mockedService.updateAnime(expectedDTO.getId(),
                 expectedDTO.getAnimeTitle(),
@@ -173,7 +198,7 @@ class AnimeControllerTest {
                         .param("animeTitle", expectedDTO.getAnimeTitle())
                         .param("airYear", expectedDTO.getInitialAirYear().toString())
                         .param("mangaAuthors", authorsParam)
-                        .param("hasBeenWatched", expectedDTO.getHasBeenWatched().toString()))
+                        .param("hasBeenWatched", expectedDTO.getIsWatched().toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(responsePayload));
@@ -183,6 +208,23 @@ class AnimeControllerTest {
                 expectedDTO.getAnimeTitle(),
                 expectedDTO.getInitialAirYear(),
                 expectedDTO.getOriginalMangaAuthors());
+    }
+
+    @Test
+    void itShouldFailToUpdateAnimeWhenPassingInvalidParameters() {
+        String franchiseId = parentFranchise.getId();
+        String animeId = anime1.getId();
+        String invalidAuthors = String.join(",", List.of("   ", ""));
+        String invalidYear = "-444";
+        String invalidTitle = "    ";
+
+        assertThatThrownBy(() -> mockMvc.perform(patch(BASE_URI + "/{animeId}", franchiseId, animeId)
+                        .param("mangaAuthors", invalidAuthors)
+                        .param("airYear", invalidYear)
+                        .param("animeTitle", invalidTitle)))
+                .hasMessageContaining(authorMessage)
+                .hasMessageContaining(yearMessage)
+                .hasMessageContaining(titleMessage);
     }
 
     @Test
@@ -196,7 +238,7 @@ class AnimeControllerTest {
                 .animeTitle(anime2DTO.getAnimeTitle())
                 .initialAirYear(anime2DTO.getInitialAirYear())
                 .originalMangaAuthors(anime2DTO.getOriginalMangaAuthors())
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         String expectedPayload = jsonMapper.writeValueAsString(expectedDTO);
@@ -205,7 +247,7 @@ class AnimeControllerTest {
                 .thenReturn(expectedDTO);
 
         mockMvc.perform(patch(BASE_URI + "/{animeId}" + MARK, franchiseId, animeId)
-                .param("hasBeenWatched", expectedDTO.getHasBeenWatched().toString()))
+                        .param("isWatched", expectedDTO.getIsWatched().toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedPayload));
 
@@ -223,7 +265,7 @@ class AnimeControllerTest {
                 .animeTitle(anime1DTO.getAnimeTitle())
                 .initialAirYear(anime1DTO.getInitialAirYear())
                 .originalMangaAuthors(anime1DTO.getOriginalMangaAuthors())
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         String expectedPayload = jsonMapper.writeValueAsString(expectedDTO);
@@ -232,7 +274,7 @@ class AnimeControllerTest {
                 .thenReturn(expectedDTO);
 
         mockMvc.perform(patch(BASE_URI + "/{animeId}" + MARK, franchiseId, animeId)
-                        .param("hasBeenWatched", expectedDTO.getHasBeenWatched().toString()))
+                        .param("isWatched", expectedDTO.getIsWatched().toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedPayload));
 

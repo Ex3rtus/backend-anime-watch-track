@@ -40,13 +40,13 @@ class AnimeFranchiseServiceTest {
         franchise1 = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Franchise To Find")
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         franchise2 = new AnimeFranchise().toBuilder()
                 .id(UUID.randomUUID().toString())
                 .franchiseTitle("Franchise To Get 2")
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
     }
 
@@ -140,13 +140,13 @@ class AnimeFranchiseServiceTest {
     @Test
     void itShouldUpdateAnimeFranchise() {
         String idFranchiseToUpdate = franchise1.getId();
-        boolean initialHasBeenWatched = franchise2.getHasBeenWatched();
+        boolean initialHasBeenWatched = franchise2.getIsWatched();
 
         String updatedTitle = "Franchise Updated";
         AnimeFranchiseDTO expected = AnimeFranchiseDTO.builder()
                 .id(idFranchiseToUpdate)
                 .franchiseTitle(updatedTitle)
-                .hasBeenWatched(!initialHasBeenWatched)
+                .isWatched(!initialHasBeenWatched)
                 .build();
 
         when(franchiseRepository.findById(idFranchiseToUpdate)).thenReturn(Optional.of(franchise1));
@@ -175,7 +175,7 @@ class AnimeFranchiseServiceTest {
         AnimeFranchiseDTO expectedDTO = AnimeFranchiseDTO.builder()
                 .id(franchiseId)
                 .franchiseTitle(franchise1.getFranchiseTitle())
-                .hasBeenWatched(true)
+                .isWatched(true)
                 .build();
 
         when(franchiseRepository.findById(franchiseId))
@@ -193,7 +193,7 @@ class AnimeFranchiseServiceTest {
         AnimeFranchiseDTO expectedDTO = AnimeFranchiseDTO.builder()
                 .id(franchiseId)
                 .franchiseTitle(franchise2.getFranchiseTitle())
-                .hasBeenWatched(false)
+                .isWatched(false)
                 .build();
 
         when(franchiseRepository.findById(franchiseId))

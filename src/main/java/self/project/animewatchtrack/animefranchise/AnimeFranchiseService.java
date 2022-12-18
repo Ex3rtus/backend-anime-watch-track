@@ -17,7 +17,7 @@ public interface AnimeFranchiseService {
 
     AnimeFranchiseDTO updateFranchise(String franchiseId, String franchiseTitle);
 
-    AnimeFranchiseDTO markFranchise(String franchiseId, Boolean newHasBeenWatched);
+    AnimeFranchiseDTO markFranchise(String franchiseId, Boolean isWatched);
 
     void deleteAnimeFranchise(String franchiseId);
 }

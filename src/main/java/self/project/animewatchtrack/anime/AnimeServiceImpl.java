@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @author Youssef Kaïdi.
  * created 02 nov. 2022.
- * TODO : Perform data validation in service layer
+ * TODO : Perform data validation
  * TODO : Use logger
  */
 
@@ -66,18 +66,15 @@ public class AnimeServiceImpl implements AnimeService {
         Anime anime = animeRepository.findById(animeId)
                 .orElseThrow(() -> new AnimeNotFoundExeption(animeId));
 
-        if (animeTitle != null && animeTitle.length() > 0
-                && !Objects.equals(animeTitle, anime.getAnimeTitle())) {
+        if (!Objects.equals(animeTitle, anime.getAnimeTitle())) {
             anime.setAnimeTitle(animeTitle);
         }
 
-        if (airYear!= null && airYear > 0
-                && !Objects.equals(airYear, anime.getInitialAirYear())) {
+        if (!Objects.equals(airYear, anime.getInitialAirYear())) {
             anime.setInitialAirYear(airYear);
         }
 
-        if (!mangaAuthors.isEmpty()
-                && !Objects.equals(mangaAuthors, anime.getOriginalMangaAuthors())) {
+        if (!mangaAuthors.equals(anime.getOriginalMangaAuthors())) {
             anime.setOriginalMangaAuthors(mangaAuthors);
         }
 
@@ -86,15 +83,13 @@ public class AnimeServiceImpl implements AnimeService {
 
     @Override
     @Transactional
-    public AnimeDTO markAnime(String animeId, Boolean newHasBeenWatched) {
+    public AnimeDTO markAnime(String animeId, Boolean isWatched) {
         Anime anime = animeRepository.findById(animeId)
                 .orElseThrow(() -> new AnimeNotFoundExeption(animeId));
 
-        if (newHasBeenWatched!= null) {
-            anime.getStrategyMap()
-                    .get(newHasBeenWatched)
-                    .markAnimeAndCascadeDown(anime);
-        }
+        anime.getStrategyMap()
+                .get(isWatched)
+                .markAnimeAndCascadeDown(anime);
 
         return AnimeMapper.mapToDTO(anime);
     }

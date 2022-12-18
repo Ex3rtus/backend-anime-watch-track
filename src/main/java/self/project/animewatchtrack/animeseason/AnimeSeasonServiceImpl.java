@@ -64,17 +64,15 @@ public class AnimeSeasonServiceImpl implements AnimeSeasonService {
     @Override
     @Transactional
     public AnimeSeasonDTO updateAnimeSeason(String seasonId,
-                                            Integer seasonNumber,Integer totalEpisodesCount) {
+                                            Integer seasonNumber, Integer totalEpisodesCount) {
         AnimeSeason animeSeason = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new AnimeSeasonNotFoundException(seasonId));
 
-        if (seasonNumber != null && seasonNumber > 0
-                && !Objects.equals(seasonNumber, animeSeason.getSeasonNumber())) {
+        if (!Objects.equals(seasonNumber, animeSeason.getSeasonNumber())) {
             animeSeason.setSeasonNumber(seasonNumber);
         }
 
-        if (totalEpisodesCount != null && totalEpisodesCount > 0
-                && !Objects.equals(totalEpisodesCount, animeSeason.getTotalEpisodesCount())) {
+        if (!Objects.equals(totalEpisodesCount, animeSeason.getTotalEpisodesCount())) {
             animeSeason.setTotalEpisodesCount(totalEpisodesCount);
         }
 
@@ -83,15 +81,13 @@ public class AnimeSeasonServiceImpl implements AnimeSeasonService {
 
     @Override
     @Transactional
-    public AnimeSeasonDTO markAnimeSeason(String seasonId, Boolean newHasBeenWatched) {
+    public AnimeSeasonDTO markAnimeSeason(String seasonId, Boolean isWatched) {
         AnimeSeason animeSeason = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new AnimeSeasonNotFoundException(seasonId));
 
-        if (newHasBeenWatched != null) {
-            animeSeason.getStrategyMap()
-                    .get(newHasBeenWatched)
-                    .markSeason(animeSeason);
-        }
+        animeSeason.getStrategyMap()
+                .get(isWatched)
+                .markSeason(animeSeason);
 
         return AnimeSeasonMapper.mapToDTO(animeSeason);
     }
@@ -108,9 +104,8 @@ public class AnimeSeasonServiceImpl implements AnimeSeasonService {
                     .markSeason(animeSeason);
         }
 
-        if (newWatchCount != null && newWatchCount > 0
-                && newWatchCount < animeSeason.getTotalEpisodesCount()
-                && !Objects.equals(newWatchCount, animeSeason.getCurrentWatchCount())) {
+        if (newWatchCount.compareTo(animeSeason.getTotalEpisodesCount()) < 0 &&
+                !Objects.equals(newWatchCount, animeSeason.getCurrentWatchCount())) {
             animeSeason.setCurrentWatchCount(newWatchCount);
         }
 

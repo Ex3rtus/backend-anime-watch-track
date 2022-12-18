@@ -9,7 +9,7 @@ public class WatchedFranchiseMarkerStrategy implements FranchiseMarkerStrategy {
 
     @Override
     public void markFranchiseAndCascadeDown(AnimeFranchise franchise) {
-        franchise.setHasBeenWatched(Boolean.TRUE);
+        franchise.setIsWatched(Boolean.TRUE);
         franchise.getAnimes()
                 .forEach(anime -> anime.getStrategyMap()
                         .get(Boolean.TRUE)

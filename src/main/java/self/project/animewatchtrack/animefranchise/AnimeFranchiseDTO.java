@@ -3,7 +3,6 @@ package self.project.animewatchtrack.animefranchise;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author Youssef Kaïdi.
@@ -16,5 +15,5 @@ import lombok.Setter;
 public class AnimeFranchiseDTO {
     private String id;
     private String franchiseTitle;
-    private Boolean hasBeenWatched;
+    private Boolean isWatched;
 }

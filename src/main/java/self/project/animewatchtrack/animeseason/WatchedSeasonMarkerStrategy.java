@@ -8,7 +8,7 @@ package self.project.animewatchtrack.animeseason;
 public class WatchedSeasonMarkerStrategy implements SeasonMarkerStrategy {
     @Override
     public void markSeason(AnimeSeason season) {
-        season.setHasBeenWatched(Boolean.TRUE);
+        season.setIsWatched(Boolean.TRUE);
         season.setCurrentWatchCount(season.getTotalEpisodesCount());
     }
 }

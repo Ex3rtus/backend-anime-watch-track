@@ -20,7 +20,10 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-@Table(name = "animes")
+@Table(
+        name = "animes",
+        uniqueConstraints = @UniqueConstraint(name = "UniqueAnimeTitle", columnNames = "anime_title")
+        )
 public class Anime {
 
     @Id
@@ -58,8 +61,8 @@ public class Anime {
     @ToString.Exclude
     private List<AnimeSeason> seasons;
 
-    @Column(name = "has_been_watched")
-    private Boolean hasBeenWatched;
+    @Column(name = "is_watched")
+    private Boolean isWatched;
 
     @Transient
     @Setter(AccessLevel.NONE)

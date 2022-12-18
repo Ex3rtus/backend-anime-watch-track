@@ -9,7 +9,7 @@ public class NotWatchedFranchiseMarkerStrategy implements FranchiseMarkerStrateg
 
     @Override
     public void markFranchiseAndCascadeDown(AnimeFranchise franchise) {
-        franchise.setHasBeenWatched(Boolean.FALSE);
+        franchise.setIsWatched(Boolean.FALSE);
         franchise.getAnimes()
                 .forEach(anime -> anime.getStrategyMap()
                         .get(Boolean.FALSE)
